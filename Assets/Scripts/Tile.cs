@@ -4,17 +4,19 @@ using UnityEngine;
 
 namespace Gameplay
 {
-    public class Board : MonoBehaviour
+    public class Tile : MonoBehaviour
     {
 
-        public void Renew()
+        // Use this for initialization
+        void Start()
         {
 
         }
 
+        // Update is called once per frame
         void Update()
         {
-            if (Input.anyKeyDown) Renew();
+
         }
     }
 }
