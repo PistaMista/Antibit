@@ -9,18 +9,11 @@ namespace Gameplay
     {
 
         RawImage image;
-        Color color
-        {
-            get
-            {
-                return image.color;
-            }
-            set
-            {
-                image.color = value;
-            }
-        }
         Text text;
+
+        public int order;
+        public int cost;
+        public Player owner;
         public int Cost
         {
             get
@@ -31,23 +24,37 @@ namespace Gameplay
             {
                 cost = value;
                 text.text = value.ToString();
+                UpdateColor();
+            }
+        }
+        public Player Owner
+        {
+            get
+            {
+                return owner;
+            }
+            set
+            {
+                owner = value;
+                UpdateColor();
             }
         }
 
-        int cost;
-        int order;
-        Player owner;
-
-        void Start()
+        void Awake()
         {
             image = GetComponent<RawImage>();
             text = GetComponentInChildren<Text>();
         }
 
-        // Update is called once per frame
-        void Update()
+        public void UpdateColor()
         {
+            Color color = owner != null ? owner.red ? Color.red : Color.green : Color.white;
+            if (owner == Player.player_on_turn) color.a = 1.0f;
+            else if (cost == 0) color.a = 0.5f;
+            else if (cost > Player.bit_cap) color.a = 0.1f;
+            else if (cost <= Player.player_on_turn.bits) color.a = 0.75f;
 
+            image.color = color;
         }
     }
 }
