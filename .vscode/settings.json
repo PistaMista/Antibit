@@ -1,56 +1,105 @@
 {
-    "files.exclude":
-    {
-        "**/.DS_Store":true,
-        "**/.git":true,
-        "**/.gitignore":true,
-        "**/.gitmodules":true,
-        "**/*.booproj":true,
-        "**/*.pidb":true,
-        "**/*.suo":true,
-        "**/*.user":true,
-        "**/*.userprefs":true,
-        "**/*.unityproj":true,
-        "**/*.dll":true,
-        "**/*.exe":true,
-        "**/*.pdf":true,
-        "**/*.mid":true,
-        "**/*.midi":true,
-        "**/*.wav":true,
-        "**/*.gif":true,
-        "**/*.ico":true,
-        "**/*.jpg":true,
-        "**/*.jpeg":true,
-        "**/*.png":true,
-        "**/*.psd":true,
-        "**/*.tga":true,
-        "**/*.tif":true,
-        "**/*.tiff":true,
-        "**/*.3ds":true,
-        "**/*.3DS":true,
-        "**/*.fbx":true,
-        "**/*.FBX":true,
-        "**/*.lxo":true,
-        "**/*.LXO":true,
-        "**/*.ma":true,
-        "**/*.MA":true,
-        "**/*.obj":true,
-        "**/*.OBJ":true,
-        "**/*.asset":true,
-        "**/*.cubemap":true,
-        "**/*.flare":true,
-        "**/*.mat":true,
-        "**/*.meta":true,
-        "**/*.prefab":true,
-        "**/*.unity":true,
-        "build/":true,
-        "Build/":true,
-        "Library/":true,
-        "library/":true,
-        "obj/":true,
-        "Obj/":true,
-        "ProjectSettings/":true,
-        "temp/":true,
-        "Temp/":true
-    }
+    "files.exclude": {
+        "**/.DS_Store": true,
+        "**/.git": true,
+        "**/.gitignore": true,
+        "**/.gitmodules": true,
+        "**/*.booproj": true,
+        "**/*.pidb": true,
+        "**/*.suo": true,
+        "**/*.user": true,
+        "**/*.userprefs": true,
+        "**/*.unityproj": true,
+        "**/*.dll": true,
+        "**/*.exe": true,
+        "**/*.pdf": true,
+        "**/*.mid": true,
+        "**/*.midi": true,
+        "**/*.wav": true,
+        "**/*.gif": true,
+        "**/*.ico": true,
+        "**/*.jpg": true,
+        "**/*.jpeg": true,
+        "**/*.png": true,
+        "**/*.psd": true,
+        "**/*.tga": true,
+        "**/*.tif": true,
+        "**/*.tiff": true,
+        "**/*.3ds": true,
+        "**/*.3DS": true,
+        "**/*.fbx": true,
+        "**/*.FBX": true,
+        "**/*.lxo": true,
+        "**/*.LXO": true,
+        "**/*.ma": true,
+        "**/*.MA": true,
+        "**/*.obj": true,
+        "**/*.OBJ": true,
+        "**/*.asset": true,
+        "**/*.cubemap": true,
+        "**/*.flare": true,
+        "**/*.mat": true,
+        "**/*.meta": true,
+        "**/*.prefab": true,
+        "**/*.unity": true,
+        "build/": true,
+        "Build/": true,
+        "Library/": true,
+        "library/": true,
+        "obj/": true,
+        "Obj/": true,
+        "ProjectSettings/": true,
+        "temp/": true,
+        "Temp/": true
+    },
+    "gitlens.advanced.messages": {
+        "suppressShowKeyBindingsNotice": true
+    },
+    "gitlens.historyExplorer.location": "scm",
+    "workbench.colorTheme": "Material Theme Darker High Contrast",
+    "materialTheme.fixIconsRunning": false,
+    "workbench.iconTheme": "eq-material-theme-icons-darker",
+    "editor.fontFamily": "Fira Code, Consolas, 'Courier New', monospace",
+    "editor.fontLigatures": true,
+    "editor.tokenColorCustomizations": {
+        "textMateRules": [
+            {
+                "name": "Variables",
+                "scope": "variable",
+                "settings": {
+                    "foreground": "#ffffff"
+                }
+            },
+            {
+                "name": "Methods",
+                "scope": "entity.name.function",
+                "settings": {
+                    "foreground": "#b3ff00",
+                    "fontStyle": "italic"
+                }
+            },
+            {
+                "name": "Operators",
+                "scope": "keyword.operator",
+                "settings": {
+                    "foreground": "#ff0000",
+                    "fontStyle": "bold"
+                }
+            },
+            {
+                "name": "Comments",
+                "scope": "comment",
+                "settings": {
+                    "foreground": "#ffd000",
+                    "fontStyle": "italic"
+                }
+            }
+        ]
+    },
+    "git.enableSmartCommit": true,
+    "git.confirmSync": false,
+    "git.autofetch": true,
+    "editor.tabCompletion": true,
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true
 }
