@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+using System;
 
 namespace Gameplay
 {
@@ -67,10 +68,10 @@ namespace Gameplay
         public void UpdateColor()
         {
             Color color = owner != null ? owner.red ? Color.red : Color.green : Color.white;
-            if (owner == Player.player_on_turn) color.a = 1.0f;
+            if (owner != null && owner == Player.player_on_turn) color.a = 1.0f;
             else if (cost == 0) color.a = 0.5f;
             else if (cost > Player.bit_cap) color.a = 0.1f;
-            else if (cost <= Player.player_on_turn.bits) color.a = 0.75f;
+            else color.a = 0.75f;
 
             image.color = color;
         }
@@ -85,17 +86,62 @@ namespace Gameplay
                     if (Owner != null) Cost = takeover_cost;
                     else Cost = exploration_cost;
                 }
+                else Cost = 0;
             }
         }
 
         public void Take()
         {
+            bool takeover = Owner != null;
             Player.player_on_turn.bits -= cost;
             Cost = 0;
             Owner = Player.player_on_turn;
+            order = neighbours.OrderByDescending(x => x == null || x.Owner != Owner ? int.MaxValue : x.order).Last().order + 1;
 
-            foreach (Tile tile in neighbours)
-                if (tile != null) tile.RecalculateCost();
+            UpdateOrdering(this);
+            foreach (Tile neighbour in neighbours)
+            {
+                if (neighbour != null)
+                {
+                    neighbour.RecalculateCost();
+                    if (neighbour.Owner != null && takeover) NeutralizeDisconnectedTileGroup(neighbour);
+                }
+            }
+
+            //If there are no more expandable tiles go to the next player.
+            for (int x = 0; x < Board.board.size.x; x++)
+            {
+                for (int y = 0; y < Board.board.size.y; y++)
+                {
+                    Tile tile = Board.board[x, y];
+                    if (tile.Cost != 0 && tile.Cost <= Player.player_on_turn.bits) return;
+                    if (x == Board.board.size.x - 1 && y == Board.board.size.y - 1) Player.Next();
+                }
+            }
+        }
+
+        static void UpdateOrdering(Tile root)
+        {
+            foreach (Tile tile in root.neighbours)
+            {
+                if (tile.order > root.order + 1)
+                {
+                    tile.order = root.order + 1;
+                    UpdateOrdering(tile);
+                }
+            }
+        }
+
+        static void NeutralizeDisconnectedTileGroup(Tile root)
+        {
+            if (!root.neighbours.Any(x => x != null && x.Owner == root.Owner && x.order < root.order) && root.order > 0)
+            {
+                Player last_owner = root.Owner;
+                root.Owner = null;
+                root.RecalculateCost();
+
+                Array.ForEach(root.neighbours, x => { if (x != null && x.Owner == last_owner) NeutralizeDisconnectedTileGroup(x); });
+            }
         }
     }
 }

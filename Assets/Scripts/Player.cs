@@ -20,13 +20,14 @@ namespace Gameplay
             players = new Player[2];
             for (int i = 0; i < 2; i++) players[i] = ScriptableObject.CreateInstance(typeof(Player)) as Player;
 
-            players[1].ai = ai;
+            //players[1].ai = ai;
             players[1].red = true;
         }
 
         public static void Next()
         {
             player_on_turn = players[player_on_turn == players[0] ? 1 : 0];
+            player_on_turn.bits = bit_cap;
             for (int x = 0; x < Board.board.size.x; x++)
                 for (int y = 0; y < Board.board.size.y; y++)
                     Board.board[x, y].RecalculateCost();
