@@ -124,6 +124,7 @@ GameObject:
   - component: {fileID: 248608744}
   - component: {fileID: 248608745}
   - component: {fileID: 248608747}
+  - component: {fileID: 248608748}
   m_Layer: 0
   m_Name: Board
   m_TagString: Untagged
@@ -142,7 +143,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a4e105535f7a7b347aee7b75f690027a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tilePrefab: {fileID: 114430525861719416, guid: 36b017cc53ebf5449bb362fdee747f40,
+  tilePrefab: {fileID: 114623843151194712, guid: 36b017cc53ebf5449bb362fdee747f40,
     type: 2}
   paddingToTileRatio: 0.1
 --- !u!223 &248608745
@@ -200,12 +201,28 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 4
-  m_StartCorner: 1
-  m_StartAxis: 0
+  m_StartCorner: 2
+  m_StartAxis: 1
   m_CellSize: {x: 90, y: 90}
   m_Spacing: {x: 10, y: 10}
   m_Constraint: 0
   m_ConstraintCount: 2
+--- !u!114 &248608748
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 248608743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1301386320, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreReversedGraphics: 1
+  m_BlockingObjects: 0
+  m_BlockingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -293,6 +310,7 @@ GameObject:
   - component: {fileID: 1814121879}
   - component: {fileID: 1814121878}
   - component: {fileID: 1814121877}
+  - component: {fileID: 1814121880}
   m_Layer: 0
   m_Name: Main Canvas
   m_TagString: Untagged
@@ -360,6 +378,22 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1814121880
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1814121876}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1301386320, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreReversedGraphics: 1
+  m_BlockingObjects: 0
+  m_BlockingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!1 &1994312915
 GameObject:
   m_ObjectHideFlags: 0

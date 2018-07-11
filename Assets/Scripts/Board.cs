@@ -7,7 +7,7 @@ namespace Gameplay
 {
     public class Board : MonoBehaviour
     {
-        static Board board;
+        public static Board board;
         void Start()
         {
             board = this;
@@ -24,6 +24,13 @@ namespace Gameplay
             set
             {
                 tiles[a, b] = value;
+            }
+        }
+        public Vector2Int size
+        {
+            get
+            {
+                return new Vector2Int(tiles.GetLength(0), tiles.GetLength(1));
             }
         }
         public static void Renew(int board_side_length)
@@ -51,14 +58,19 @@ namespace Gameplay
                 {
                     Tile tile = Instantiate(board.tilePrefab, board.transform).GetComponent<Tile>();
                     tile.transform.localScale = Vector3.one;
+                    tile.position = new Vector2Int(x, y);
 
-                    if (x == player_x_spawn && (y == 0 || y == board_side_length + 1)) tile.Owner = Player.players[y == 0 ? 1 : 0];
+                    if (x == player_x_spawn && (y == 0 || y == board_side_length + 1)) tile.Owner = Player.players[y == 0 ? 0 : 1];
                     else
                     if (x == 0 || x == board_side_length + 1 || y == 0 || y == board_side_length + 1) tile.Cost = int.MaxValue;
                     else tile.UpdateColor();
+
+                    tile.GetComponent<Button>().onClick.AddListener(() => OnTileClick(tile.position));
                     board[x, y] = tile;
                 }
             }
+
+            Player.Next();
         }
 
         void Update()
@@ -70,6 +82,17 @@ namespace Gameplay
                     Debug.Log("Pressed " + i);
                     Board.Renew(i);
                 }
+            }
+        }
+
+        static void OnTileClick(Vector2Int pos)
+        {
+            Debug.Log("Clicked tile " + pos.x + " " + pos.y);
+            if (!Player.player_on_turn.ai)
+            {
+                Tile tile = board[pos.x, pos.y];
+                if (tile.cost != 0 && tile.cost <= Player.player_on_turn.bits) tile.Take();
+                Debug.Log("Bits remaining " + Player.player_on_turn.bits);
             }
         }
     }
