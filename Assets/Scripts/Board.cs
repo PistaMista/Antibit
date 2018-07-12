@@ -44,25 +44,23 @@ namespace Gameplay
                         Destroy(board[x, y].gameObject);
 
             float board_size = board.GetComponent<RectTransform>().sizeDelta.x;
-            float tile_size = board_size / (board_side_length + 2);
+            float tile_size = board_size / board_side_length;
             GridLayoutGroup grid = board.GetComponent<GridLayoutGroup>();
 
             grid.cellSize = Vector2.one * tile_size * (1.0f - board.paddingToTileRatio);
             grid.spacing = Vector2.one * tile_size * board.paddingToTileRatio;
 
-            board.tiles = new Tile[board_side_length + 2, board_side_length + 2];
-            int player_x_spawn = Mathf.CeilToInt(board_side_length / 2.0f);
-            for (int x = 0; x < board_side_length + 2; x++)
+            board.tiles = new Tile[board_side_length, board_side_length];
+            int player_x_spawn = Mathf.FloorToInt(board_side_length / 2.0f);
+            for (int x = 0; x < board_side_length; x++)
             {
-                for (int y = 0; y < board_side_length + 2; y++)
+                for (int y = 0; y < board_side_length; y++)
                 {
                     Tile tile = Instantiate(board.tilePrefab, board.transform).GetComponent<Tile>();
                     tile.transform.localScale = Vector3.one;
                     tile.position = new Vector2Int(x, y);
 
-                    if (x == player_x_spawn && (y == 0 || y == board_side_length + 1)) tile.Owner = Player.players[y == 0 ? 0 : 1];
-                    else
-                    if (x == 0 || x == board_side_length + 1 || y == 0 || y == board_side_length + 1) tile.Cost = int.MaxValue;
+                    if (x == player_x_spawn && (y == 0 || y == board_side_length - 1)) tile.Owner = Player.players[y == 0 ? 0 : 1];
                     else tile.UpdateColor();
 
                     tile.GetComponent<Button>().onClick.AddListener(() => OnTileClick(tile.position));

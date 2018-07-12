@@ -124,7 +124,7 @@ namespace Gameplay
         {
             foreach (Tile tile in root.neighbours)
             {
-                if (tile.order > root.order + 1)
+                if (tile != null && tile.Owner == root.Owner && tile.order > root.order + 1)
                 {
                     tile.order = root.order + 1;
                     UpdateOrdering(tile);
