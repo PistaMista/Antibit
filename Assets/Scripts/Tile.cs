@@ -11,6 +11,7 @@ namespace Gameplay
     {
         public const int exploration_cost = 1;
         public const int takeover_cost = 2;
+        public const int win_cost = 3;
         public Vector2Int position;
         public Tile[] neighbours;
         RawImage image;
@@ -69,7 +70,7 @@ namespace Gameplay
                 if (Player.player_on_turn == Owner) Cost = 0;
                 else if (neighbours.Any(x => x != null && x.Owner == Player.player_on_turn))
                 {
-                    if (Owner != null) Cost = takeover_cost;
+                    if (Owner != null) Cost = order == 0 ? win_cost : takeover_cost;
                     else Cost = exploration_cost;
                 }
                 else Cost = 0;

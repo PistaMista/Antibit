@@ -7,6 +7,7 @@ namespace Gameplay
 {
     public class Player : ScriptableObject
     {
+
         public bool ai = false;
         public bool red = false;
         public int bits = bit_cap;
@@ -31,6 +32,11 @@ namespace Gameplay
             for (int x = 0; x < Board.board.size.x; x++)
                 for (int y = 0; y < Board.board.size.y; y++)
                     Board.board[x, y].RecalculateCost();
+        }
+
+        public void UseAI()
+        {
+
         }
     }
 }

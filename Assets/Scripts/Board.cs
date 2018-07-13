@@ -84,6 +84,11 @@ namespace Gameplay
             Player.Next();
         }
 
+        public static void CheckConnections(Tile root)
+        {
+
+        }
+
         void Update()
         {
             for (int i = 1; i <= 9; i++)
