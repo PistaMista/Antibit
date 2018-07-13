@@ -68,6 +68,19 @@ namespace Gameplay
                 }
             }
 
+            foreach (Tile tile in board.tiles)
+            {
+                tile.neighbours = new Tile[4];
+                for (int i = 0; i < 4; i++)
+                {
+                    Vector2Int pos = tile.position + new Vector2Int((i - 1) % 2, (i - 2) % 2);
+                    if (pos.x >= 0 && pos.x < board.tiles.GetLength(0) && pos.y >= 0 && pos.y < board.tiles.GetLength(1))
+                    {
+                        tile.neighbours[i] = board[pos.x, pos.y];
+                    }
+                }
+            }
+
             Player.Next();
         }
 

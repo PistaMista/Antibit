@@ -12,21 +12,7 @@ namespace Gameplay
         public const int exploration_cost = 1;
         public const int takeover_cost = 2;
         public Vector2Int position;
-        public Tile[] neighbours
-        {
-            get
-            {
-                Tile[] result = new Tile[4];
-                for (int i = 0; i < 4; i++)
-                {
-                    Vector2Int p = position + new Vector2Int((i - 1) % 2, (i - 2) % 2);
-                    if (p.x >= 0 && p.x < Board.board.size.x && p.y >= 0 && p.y < Board.board.size.y)
-                        result[i] = Board.board[p.x, p.y];
-                }
-
-                return result;
-            }
-        }
+        public Tile[] neighbours;
         RawImage image;
         Text text;
 
