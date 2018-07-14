@@ -54,10 +54,11 @@ namespace Gameplay
         public void UpdateColor()
         {
             Color color = owner != null ? owner.red ? Color.red : Color.green : Color.white;
-            if (owner != null && owner == Player.player_on_turn) color.a = 1.0f;
-            else if (cost == 0) color.a = 0.5f;
-            else if (cost > Player.bit_cap) color.a = 0.1f;
-            else color.a = 0.75f;
+
+            if (owner == Player.player_on_turn) color.a = 1.0f;
+            else if (cost <= Player.bit_cap && cost > 0) color.a = 0.75f;
+            else if (owner != null) color.a = 0.5f;
+            else color.a = 0.1f;
 
             image.color = color;
         }
