@@ -11,6 +11,7 @@ namespace Gameplay
     {
         public const int exploration_cost = 1;
         public const int takeover_cost = 2;
+        public const int reinforcement_cost = 2;
         public const int win_cost = 3;
         public Vector2Int position;
         public Tile[] neighbours;
@@ -65,16 +66,16 @@ namespace Gameplay
 
         public void RecalculateCost()
         {
-            if (cost <= Player.bit_cap)
+            int player_neighbours = neighbours.Count(x => x != null && x.Owner == Player.player_on_turn);
+
+            if (Player.player_on_turn == Owner) Cost = 0;
+            else if (player_neighbours > 0)
             {
-                if (Player.player_on_turn == Owner) Cost = 0;
-                else if (neighbours.Any(x => x != null && x.Owner == Player.player_on_turn))
-                {
-                    if (Owner != null) Cost = this == owner.origin ? win_cost : takeover_cost;
-                    else Cost = exploration_cost;
-                }
-                else Cost = 0;
+                if (Owner != null) Cost = this == owner.origin ? win_cost : takeover_cost;
+                else Cost = player_neighbours > 1 ? reinforcement_cost : exploration_cost;
             }
+            else Cost = 0;
+
         }
 
         public void Take()
