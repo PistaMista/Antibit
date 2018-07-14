@@ -60,7 +60,12 @@ namespace Gameplay
                     tile.transform.localScale = Vector3.one;
                     tile.position = new Vector2Int(x, y);
 
-                    if (x == player_x_spawn && (y == 0 || y == board_side_length - 1)) tile.Owner = Player.players[y == 0 ? 0 : 1];
+                    if (x == player_x_spawn && (y == 0 || y == board_side_length - 1))
+                    {
+                        Player player = Player.players[y == 0 ? 0 : 1];
+                        tile.Owner = player;
+                        player.origin = tile;
+                    }
                     else tile.UpdateColor();
 
                     tile.GetComponent<Button>().onClick.AddListener(() => OnTileClick(tile.position));
@@ -82,11 +87,6 @@ namespace Gameplay
             }
 
             Player.Next();
-        }
-
-        public static void CheckConnections(Tile root)
-        {
-
         }
 
         void Update()

@@ -17,7 +17,6 @@ namespace Gameplay
         RawImage image;
         Text text;
 
-        public int order;
         public int cost;
         public Player owner;
         public int Cost
@@ -70,7 +69,7 @@ namespace Gameplay
                 if (Player.player_on_turn == Owner) Cost = 0;
                 else if (neighbours.Any(x => x != null && x.Owner == Player.player_on_turn))
                 {
-                    if (Owner != null) Cost = order == 0 ? win_cost : takeover_cost;
+                    if (Owner != null) Cost = this == owner.origin ? win_cost : takeover_cost;
                     else Cost = exploration_cost;
                 }
                 else Cost = 0;
@@ -83,16 +82,27 @@ namespace Gameplay
             Player.player_on_turn.bits -= cost;
             Cost = 0;
             Owner = Player.player_on_turn;
-            order = neighbours.OrderByDescending(x => x == null || x.Owner != Owner ? int.MaxValue : x.order).Last().order + 1;
 
-            UpdateOrdering(this);
+            if (takeover)
+            {
+                foreach (Tile neighbour in neighbours)
+                {
+                    if (neighbour != null && neighbour.Owner != null && neighbour.Owner != Owner)
+                    {
+                        List<Tile> group = new List<Tile>();
+                        SelectGroup(neighbour, ref group);
+
+                        if (!group.Contains(neighbour.Owner.origin))
+                        {
+                            group.ForEach(x => x.Owner = null);
+                        }
+                    }
+                }
+            }
+
             foreach (Tile neighbour in neighbours)
             {
-                if (neighbour != null)
-                {
-                    neighbour.RecalculateCost();
-                    if (neighbour.Owner != null && takeover) NeutralizeDisconnectedTileGroup(neighbour);
-                }
+                if (neighbour != null) neighbour.RecalculateCost();
             }
 
             //If there are no more expandable tiles go to the next player.
@@ -107,27 +117,13 @@ namespace Gameplay
             }
         }
 
-        static void UpdateOrdering(Tile root)
+        static void SelectGroup(Tile root, ref List<Tile> output)
         {
+            output.Add(root);
             foreach (Tile tile in root.neighbours)
             {
-                if (tile != null && tile.Owner == root.Owner && tile.order > root.order + 1)
-                {
-                    tile.order = root.order + 1;
-                    UpdateOrdering(tile);
-                }
-            }
-        }
-
-        static void NeutralizeDisconnectedTileGroup(Tile root)
-        {
-            if (!root.neighbours.Any(x => x != null && x.Owner == root.Owner && x.order < root.order) && root.order > 0)
-            {
-                Player last_owner = root.Owner;
-                root.Owner = null;
-                root.RecalculateCost();
-
-                Array.ForEach(root.neighbours, x => { if (x != null && x.Owner == last_owner) NeutralizeDisconnectedTileGroup(x); });
+                if (tile != null && tile.Owner == root.Owner && !output.Contains(tile))
+                    SelectGroup(tile, ref output);
             }
         }
     }
