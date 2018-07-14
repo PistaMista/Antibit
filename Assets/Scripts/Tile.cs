@@ -9,9 +9,6 @@ namespace Gameplay
 {
     public class Tile : MonoBehaviour
     {
-        public const int exploration_cost = 1;
-        public const int takeover_cost = 2;
-        public const int win_cost = 3;
         public Vector2Int position;
         public Tile[] neighbours;
         RawImage image;
@@ -54,10 +51,11 @@ namespace Gameplay
         public void UpdateColor()
         {
             Color color = owner != null ? owner.red ? Color.red : Color.green : Color.white;
-            if (owner != null && owner == Player.player_on_turn) color.a = 1.0f;
-            else if (cost == 0) color.a = 0.5f;
-            else if (cost > Player.bit_cap) color.a = 0.1f;
-            else color.a = 0.75f;
+
+            if (owner == Player.player_on_turn) color.a = 1.0f;
+            else if (cost <= Player.bit_cap && cost > 0) color.a = 0.75f;
+            else if (owner != null) color.a = 0.5f;
+            else color.a = 0.1f;
 
             image.color = color;
         }
@@ -67,12 +65,18 @@ namespace Gameplay
             if (cost <= Player.bit_cap)
             {
                 if (Player.player_on_turn == Owner) Cost = 0;
-                else if (neighbours.Any(x => x != null && x.Owner == Player.player_on_turn))
+                else
                 {
-                    if (Owner != null) Cost = this == owner.origin ? win_cost : takeover_cost;
-                    else Cost = exploration_cost;
+                    int player_neighbours = neighbours.Count(x => x != null && x.Owner == Player.player_on_turn);
+                    if (Owner != null)
+                    {
+                        Cost = 4 - player_neighbours;
+                    }
+                    else
+                    {
+                        Cost = player_neighbours;
+                    }
                 }
-                else Cost = 0;
             }
         }
 
