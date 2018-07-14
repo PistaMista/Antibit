@@ -62,20 +62,17 @@ namespace Gameplay
 
         public void RecalculateCost()
         {
-            if (cost <= Player.bit_cap)
+            if (Player.player_on_turn == Owner) Cost = 0;
+            else
             {
-                if (Player.player_on_turn == Owner) Cost = 0;
+                int player_neighbours = neighbours.Count(x => x != null && x.Owner == Player.player_on_turn);
+                if (Owner != null)
+                {
+                    Cost = Mathf.Clamp(Player.bit_cap + 1 - player_neighbours * 2, 1, int.MaxValue);
+                }
                 else
                 {
-                    int player_neighbours = neighbours.Count(x => x != null && x.Owner == Player.player_on_turn);
-                    if (Owner != null)
-                    {
-                        Cost = 4 - player_neighbours;
-                    }
-                    else
-                    {
-                        Cost = player_neighbours;
-                    }
+                    Cost = player_neighbours;
                 }
             }
         }
