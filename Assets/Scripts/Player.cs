@@ -8,12 +8,18 @@ namespace Gameplay
     public class Player : ScriptableObject
     {
         public Tile origin;
-        public Tile moved_tile;
         public bool ai = false;
         public bool red = false;
+
+
+        public bool[,] sources;
+        public bool[,] destinations;
+
         public Structure[] structures;
+
         public static Player[] players;
         public static Player player_on_turn;
+        public static Tile source;
         public static void ReinitializePlayers(bool ai)
         {
             if (players != null) Array.ForEach(players, x => Destroy(x));

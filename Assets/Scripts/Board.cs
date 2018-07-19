@@ -63,10 +63,9 @@ namespace Gameplay
                     if (x == player_x_spawn && (y == 0 || y == board_side_length - 1))
                     {
                         Player player = Player.players[y == 0 ? 0 : 1];
-                        tile.Owner = player;
+                        tile.owner = player;
                         player.origin = tile;
                     }
-                    else tile.UpdateColor();
 
                     tile.GetComponent<Button>().onClick.AddListener(() => OnTileClick(tile.position));
                     board[x, y] = tile;

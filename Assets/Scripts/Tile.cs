@@ -15,19 +15,29 @@ namespace Gameplay
         Text text;
 
         public Player owner;
-        public Structure structure;
-        public Player Owner
+        public bool IsSource
         {
             get
             {
-                return owner;
+                return Player.player_on_turn.sources[position.x, position.y];
             }
             set
             {
-                owner = value;
-                UpdateColor();
+                Player.player_on_turn.sources[position.x, position.y] = value;
             }
         }
+        public bool IsDestination
+        {
+            get
+            {
+                return Player.player_on_turn.destinations[position.x, position.y];
+            }
+            set
+            {
+                Player.player_on_turn.sources[position.x, position.y] = value;
+            }
+        }
+        public Structure structure;
 
         void Awake()
         {
@@ -35,12 +45,17 @@ namespace Gameplay
             text = GetComponentInChildren<Text>();
         }
 
-        public void UpdateColor()
+        public void SelectSource()
         {
-            Color color = owner != null ? owner.red ? Color.red : Color.green : Color.white;
+            if (!IsSource) throw new Exception("Tried to select " + position + " - not a source.");
+            Player.source = this;
+        }
 
-
-            image.color = color;
+        public void SelectDestination()
+        {
+            if (!IsDestination) throw new Exception("Tried to move " + Player.source.position + " into " + position + " - not a destination.");
+            Player.source.owner = null;
+            owner = Player.player_on_turn;
         }
 
         static void SelectGroup(Tile root, ref List<Tile> output)
@@ -48,7 +63,7 @@ namespace Gameplay
             output.Add(root);
             foreach (Tile tile in root.neighbours)
             {
-                if (tile != null && tile.Owner == root.Owner && !output.Contains(tile))
+                if (tile != null && tile.owner == root.owner && !output.Contains(tile))
                     SelectGroup(tile, ref output);
             }
         }
