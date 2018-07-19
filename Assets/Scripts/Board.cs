@@ -107,8 +107,7 @@ namespace Gameplay
             if (!Player.player_on_turn.ai)
             {
                 Tile tile = board[pos.x, pos.y];
-                if (tile.cost != 0 && tile.cost <= Player.player_on_turn.bits) tile.Take();
-                Debug.Log("Bits remaining " + Player.player_on_turn.bits);
+
             }
         }
     }
