@@ -54,18 +54,10 @@ namespace Gameplay
         public void SelectDestination()
         {
             if (!IsDestination) throw new Exception("Tried to move " + Player.source.position + " into " + position + " - not a destination.");
-            Player.source.owner = null;
             owner = Player.player_on_turn;
-        }
 
-        static void SelectGroup(Tile root, ref List<Tile> output)
-        {
-            output.Add(root);
-            foreach (Tile tile in root.neighbours)
-            {
-                if (tile != null && tile.owner == root.owner && !output.Contains(tile))
-                    SelectGroup(tile, ref output);
-            }
+            Player.source.owner = null;
+            Player.source = null;
         }
     }
 }

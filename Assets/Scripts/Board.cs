@@ -109,5 +109,11 @@ namespace Gameplay
 
             }
         }
+
+
+        static void CheckIntegrity()
+        {
+
+        }
     }
 }
