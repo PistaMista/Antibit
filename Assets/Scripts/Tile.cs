@@ -34,7 +34,7 @@ namespace Gameplay
             }
             set
             {
-                Player.player_on_turn.sources[position.x, position.y] = value;
+                Player.player_on_turn.destinations[position.x, position.y] = value;
             }
         }
         public Structure structure;
@@ -78,6 +78,9 @@ namespace Gameplay
 
             Player.source.owner = null;
             Player.source = null;
+
+            Board.CheckIntegrity();
+            Player.Next();
         }
     }
 }

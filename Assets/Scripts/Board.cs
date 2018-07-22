@@ -111,7 +111,14 @@ namespace Gameplay
                 }
                 else
                 {
-                    UI.View.Unzoom();
+                    if (tile.IsSource)
+                        tile.SelectSource();
+                    else
+                    {
+                        UI.View.Unzoom();
+                        if (Player.source != null && tile.IsDestination)
+                            tile.SelectDestination();
+                    }
                 }
 
             }

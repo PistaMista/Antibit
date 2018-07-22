@@ -7,12 +7,12 @@ namespace UI
 {
     public class View : MonoBehaviour
     {
-        public static View view;
         public static bool zoomed;
+        static float board_scale;
+        static View view;
         public int zoomSize;
         RectTransform rect;
         RectTransform boardRect;
-        static float board_scale;
         void Start()
         {
             view = this;
