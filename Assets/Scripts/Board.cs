@@ -26,13 +26,9 @@ namespace Gameplay
                 tiles[a, b] = value;
             }
         }
-        public Vector2Int size
-        {
-            get
-            {
-                return new Vector2Int(tiles.GetLength(0), tiles.GetLength(1));
-            }
-        }
+        public Vector2Int center;
+        public Vector2Int size;
+        public float tileSize;
         public static void Renew(int board_side_length)
         {
             Player.ReinitializePlayers(true);
@@ -44,11 +40,11 @@ namespace Gameplay
                         Destroy(board[x, y].gameObject);
 
             float board_size = board.GetComponent<RectTransform>().sizeDelta.x;
-            float tile_size = board_size / board_side_length;
+            board.tileSize = board_size / board_side_length;
             GridLayoutGroup grid = board.GetComponent<GridLayoutGroup>();
 
-            grid.cellSize = Vector2.one * tile_size * (1.0f - board.paddingToTileRatio);
-            grid.spacing = Vector2.one * tile_size * board.paddingToTileRatio;
+            grid.cellSize = Vector2.one * board.tileSize * (1.0f - board.paddingToTileRatio);
+            grid.spacing = Vector2.one * board.tileSize * board.paddingToTileRatio;
 
             board.tiles = new Tile[board_side_length, board_side_length];
             int player_x_spawn = Mathf.FloorToInt(board_side_length / 2.0f);
@@ -85,6 +81,9 @@ namespace Gameplay
                 }
             }
 
+            board.center = Vector2Int.one * (board_side_length / 2);
+            board.size = Vector2Int.one * board_side_length;
+
             Player.Next();
         }
 
@@ -94,8 +93,8 @@ namespace Gameplay
             {
                 if (Input.GetKeyDown(i.ToString()))
                 {
-                    Debug.Log("Pressed " + i);
-                    Board.Renew(i);
+                    Debug.Log("Pressed " + i * 9);
+                    Board.Renew(i * 9);
                 }
             }
         }
@@ -106,12 +105,20 @@ namespace Gameplay
             if (!Player.player_on_turn.ai)
             {
                 Tile tile = board[pos.x, pos.y];
+                if (!UI.View.zoomed)
+                {
+                    UI.View.ZoomInto(pos);
+                }
+                else
+                {
+                    UI.View.Unzoom();
+                }
 
             }
         }
 
 
-        static void CheckIntegrity()
+        public static void CheckIntegrity()
         {
             bool[,] valid_tiles = new bool[board.tiles.GetLength(0), board.tiles.GetLength(1)];
 

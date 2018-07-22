@@ -1,8 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-public class Structure : MonoBehaviour
+namespace Gameplay
 {
+    public class Structure : MonoBehaviour
+    {
 
+    }
 }

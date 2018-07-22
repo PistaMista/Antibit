@@ -50,9 +50,11 @@ namespace Gameplay
             int x = direction.x == 0 ? 2 : direction.x;
             int y = direction.y == 0 ? 1 : direction.y;
             Push(tile, x + y);
+
+            Board.CheckIntegrity();
         }
 
-        public static void Push(Tile tile, int i)
+        static void Push(Tile tile, int i)
         {
             Tile next = tile.neighbours[i];
             if (next != null)
