@@ -113,7 +113,29 @@ namespace Gameplay
 
         static void CheckIntegrity()
         {
+            bool[,] valid_tiles = new bool[board.tiles.GetLength(0), board.tiles.GetLength(1)];
 
+            for (int i = 0; i < 2; i++) GroupSelect(Player.players[i].origin, ref valid_tiles);
+
+            foreach (Tile tile in board.tiles)
+            {
+                if (!valid_tiles[tile.position.x, tile.position.y])
+                {
+                    tile.owner = null;
+                }
+            }
+        }
+
+        static void GroupSelect(Tile root, ref bool[,] map)
+        {
+            map[root.position.x, root.position.y] = true;
+            foreach (Tile neighbour in root.neighbours)
+            {
+                if (neighbour != null && neighbour.owner == root.owner && !map[neighbour.position.x, neighbour.position.y])
+                {
+                    GroupSelect(neighbour, ref map);
+                }
+            }
         }
     }
 }

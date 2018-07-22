@@ -45,6 +45,24 @@ namespace Gameplay
             text = GetComponentInChildren<Text>();
         }
 
+        public static void Push(Tile tile, Vector2Int direction)
+        {
+            int x = direction.x == 0 ? 2 : direction.x;
+            int y = direction.y == 0 ? 1 : direction.y;
+            Push(tile, x + y);
+        }
+
+        public static void Push(Tile tile, int i)
+        {
+            Tile next = tile.neighbours[i];
+            if (next != null)
+            {
+                if (next.owner != null) Push(next, i);
+                next.owner = tile.owner;
+                tile.owner = null;
+            }
+        }
+
         public void SelectSource()
         {
             if (!IsSource) throw new Exception("Tried to select " + position + " - not a source.");
