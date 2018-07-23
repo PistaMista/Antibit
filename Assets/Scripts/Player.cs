@@ -7,6 +7,7 @@ namespace Gameplay
 {
     public class Player : ScriptableObject
     {
+        public Player opponent;
         public Tile origin;
         public bool ai = false;
         public bool red = false;
@@ -17,8 +18,8 @@ namespace Gameplay
 
         public Structure[] structures;
 
-        public static Player[] players;
         public static Player player_on_turn;
+        public static Player[] players;
         public static Tile source;
         public static void ReinitializePlayers(bool ai)
         {
@@ -27,13 +28,17 @@ namespace Gameplay
             players = new Player[2];
             for (int i = 0; i < 2; i++) players[i] = ScriptableObject.CreateInstance(typeof(Player)) as Player;
 
-            //players[1].ai = ai;
-            players[1].red = true;
+            player_on_turn = players[0];
+            player_on_turn.opponent = players[1];
+            player_on_turn.opponent.opponent = player_on_turn;
+
+            player_on_turn.opponent.red = true;
+            //player_on_turn.opponent.ai = true;
         }
 
         public static void Next()
         {
-            player_on_turn = players[player_on_turn == players[0] ? 1 : 0];
+            player_on_turn = player_on_turn.opponent;
         }
 
         public void UseAI()

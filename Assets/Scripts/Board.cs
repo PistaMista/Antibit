@@ -12,6 +12,7 @@ namespace Gameplay
         {
             board = this;
         }
+
         public Tile tilePrefab;
         public float paddingToTileRatio;
         Tile[,] tiles;
@@ -59,7 +60,7 @@ namespace Gameplay
                     if (x == player_x_spawn && (y == 0 || y == board_side_length - 1))
                     {
                         Player player = Player.players[y == 0 ? 0 : 1];
-                        tile.owner = player;
+                        tile.Owner = player;
                         player.origin = tile;
                     }
 
@@ -83,8 +84,6 @@ namespace Gameplay
 
             board.center = Vector2Int.one * (board_side_length / 2);
             board.size = Vector2Int.one * board_side_length;
-
-            Player.Next();
         }
 
         void Update()
@@ -111,12 +110,12 @@ namespace Gameplay
                 }
                 else
                 {
-                    if (tile.IsSource)
+                    if (Player.player_on_turn.sources.Is(tile))
                         tile.SelectSource();
                     else
                     {
                         UI.View.Unzoom();
-                        if (Player.source != null && tile.IsDestination)
+                        if (Player.source != null && Player.player_on_turn.destinations.Is(tile))
                             tile.SelectDestination();
                     }
                 }
@@ -135,7 +134,7 @@ namespace Gameplay
             {
                 if (!valid_tiles[tile.position.x, tile.position.y])
                 {
-                    tile.owner = null;
+                    tile.Owner = null;
                 }
             }
         }
@@ -145,7 +144,7 @@ namespace Gameplay
             map[root.position.x, root.position.y] = true;
             foreach (Tile neighbour in root.neighbours)
             {
-                if (neighbour != null && neighbour.owner == root.owner && !map[neighbour.position.x, neighbour.position.y])
+                if (neighbour != null && neighbour.Owner == root.Owner && !map[neighbour.position.x, neighbour.position.y])
                 {
                     GroupSelect(neighbour, ref map);
                 }
