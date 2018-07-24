@@ -146,6 +146,8 @@ MonoBehaviour:
   tilePrefab: {fileID: 114592877005138900, guid: 36b017cc53ebf5449bb362fdee747f40,
     type: 2}
   paddingToTileRatio: 0.1
+  startingTileRectangleSize: {x: 9, y: 3}
+  playerOriginYIndent: 2
   center: {x: 0, y: 0}
   size: {x: 0, y: 0}
   tileSize: 0
@@ -409,7 +411,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a58019c3025823549829209308d5879d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  zoomSize: 5
+  zoomSize: 7
 --- !u!1 &1994312915
 GameObject:
   m_ObjectHideFlags: 0

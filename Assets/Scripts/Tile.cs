@@ -27,10 +27,17 @@ namespace Gameplay
                 {
                     RecalculateSourceAndDestinationProvision();
                     owner = value;
+                    RefreshColor();
                 }
             }
         }
 
+        public void RefreshColor()
+        {
+            Color color = owner != null ? (owner.red ? Color.red : Color.green) : Color.gray;
+            color.a = Player.player_on_turn.destinations.Is(this) || Player.player_on_turn.sources.Is(this) ? 1.0f : 0.5f;
+            image.color = color;
+        }
 
 
         public Structure structure;
