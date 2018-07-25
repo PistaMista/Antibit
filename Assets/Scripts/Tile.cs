@@ -25,9 +25,8 @@ namespace Gameplay
             {
                 if (owner != value)
                 {
-                    RecalculateSourceAndDestinationProvision();
                     owner = value;
-                    RefreshColor();
+                    RecalculateSourceAndDestinationProvision();
                 }
             }
         }
@@ -52,7 +51,7 @@ namespace Gameplay
         {
             if (owner != null)
             {
-                owner.sources.Set(this, true);
+                owner.sources.Set(this, this != owner.origin);
                 owner.opponent.sources.Set(this, false);
 
                 foreach (Player player in Player.players) player.destinations.Set(this, false);

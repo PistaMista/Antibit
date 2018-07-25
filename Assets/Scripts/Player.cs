@@ -46,6 +46,13 @@ namespace Gameplay
         public static void Next()
         {
             player_on_turn = player_on_turn.opponent;
+            for (int x = 0; x < Board.board.size.x; x++)
+            {
+                for (int y = 0; y < Board.board.size.y; y++)
+                {
+                    Board.board[x, y].RefreshColor();
+                }
+            }
         }
 
         public void UseAI()

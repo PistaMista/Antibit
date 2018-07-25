@@ -13,6 +13,7 @@ public static class Extensions
     public static void Set(this bool[,] array, Gameplay.Tile tile, bool value)
     {
         array.Set(tile.position, value);
+        tile.RefreshColor();
     }
 
     public static bool Is(this bool[,] array, Vector2Int position)
