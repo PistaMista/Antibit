@@ -14,6 +14,7 @@ namespace Gameplay
         }
 
         public Tile tilePrefab;
+        public Structure[] structurePrefabs;
         public float paddingToTileRatio;
         public Vector2Int startingTileRectangleSize;
         public int playerOriginYIndent;
