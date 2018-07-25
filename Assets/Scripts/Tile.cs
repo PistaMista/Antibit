@@ -25,8 +25,21 @@ namespace Gameplay
             {
                 if (owner != value)
                 {
+                    Player last_owner = owner;
                     owner = value;
                     RecalculateSourceAndDestinationProvision();
+
+                    if (last_owner != null)
+                    {
+                        foreach (Tile neighbour in neighbours)
+                        {
+                            if (neighbour != null && neighbour.owner == last_owner)
+                            {
+                                List<Tile> tiles = new List<Tile>();
+                                if (!TraceOrigin(neighbour, tiles)) tiles.ForEach(x => { x.owner = null; x.RecalculateSourceAndDestinationProvision(); });
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -77,23 +90,37 @@ namespace Gameplay
             }
         }
 
+        public static bool TraceOrigin(Tile root, List<Tile> explored)
+        {
+            if (root == root.owner.origin) return true;
+            explored.Add(root);
+
+            IEnumerable<Tile> next = root.neighbours.Where(x => x != null && x.owner == root.owner && !explored.Contains(x)).OrderByDescending(x => (x.position - x.owner.origin.position).magnitude).Reverse();
+            foreach (Tile tile in next)
+            {
+                if (TraceOrigin(tile, explored)) return true;
+            }
+
+            return false;
+        }
+
         public static void Push(Tile tile, Vector2Int direction)
         {
             int x = direction.x == 0 ? 2 : direction.x;
             int y = direction.y == 0 ? 1 : direction.y;
             Push(tile, x + y);
 
-            Board.CheckIntegrity();
+            tile.Owner = null;
         }
 
-        static void Push(Tile tile, int i)
+        static void Push(Tile root, int i)
         {
-            Tile next = tile.neighbours[i];
+            Tile next = root.neighbours[i];
             if (next != null)
             {
-                if (next.Owner != null) Push(next, i);
-                next.Owner = tile.Owner;
-                tile.Owner = null;
+                if (next.owner != null) Push(next, i);
+                next.Owner = root.owner;
+                root.owner = null;
             }
         }
 
@@ -111,7 +138,6 @@ namespace Gameplay
             Player.source.Owner = null;
             Player.source = null;
 
-            Board.CheckIntegrity();
             Player.Next();
         }
     }
