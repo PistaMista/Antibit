@@ -19,6 +19,7 @@ namespace Gameplay
         public Vector2Int startingTileRectangleSize;
         public int playerOriginYIndent;
         Tile[,] tiles;
+        Dictionary<int, Structure> structures;
         public Tile this[int a, int b]
         {
             get
@@ -30,8 +31,8 @@ namespace Gameplay
                 tiles[a, b] = value;
             }
         }
-        public Vector2Int center;
-        public Vector2Int size;
+        public int center;
+        public int size;
         public float tileSize;
         public static void Renew(int board_side_length)
         {
@@ -41,6 +42,11 @@ namespace Gameplay
                     for (int y = 0; y < board.tiles.GetLength(1); y++)
                         Destroy(board[x, y].gameObject);
 
+            if (board.structures != null)
+                foreach (KeyValuePair<int, Structure> item in board.structures)
+                    Destroy(item.Value.gameObject);
+
+
             float board_size = board.GetComponent<RectTransform>().sizeDelta.x;
             board.tileSize = board_size / board_side_length;
             GridLayoutGroup grid = board.GetComponent<GridLayoutGroup>();
@@ -48,8 +54,8 @@ namespace Gameplay
             grid.cellSize = Vector2.one * board.tileSize * (1.0f - board.paddingToTileRatio);
             grid.spacing = Vector2.one * board.tileSize * board.paddingToTileRatio;
 
-            board.center = Vector2Int.one * (board_side_length / 2);
-            board.size = Vector2Int.one * board_side_length;
+            board.center = board_side_length / 2;
+            board.size = board_side_length;
 
             board.tiles = new Tile[board_side_length, board_side_length];
             for (int x = 0; x < board_side_length; x++)
@@ -78,6 +84,9 @@ namespace Gameplay
                 }
             }
 
+            board.structures = new Dictionary<int, Structure>();
+            Structure.AddGhosts();
+
             Player.ReinitializePlayers(true);
 
             Vector2Int player_origin = new Vector2Int(Mathf.FloorToInt(board_side_length / 2.0f), 0);
@@ -87,7 +96,7 @@ namespace Gameplay
             {
                 Player player = Player.players[i];
                 int rect_y_half = Mathf.FloorToInt(board.startingTileRectangleSize.y / 2.0f);
-                player_rectangle_start.y = i == 0 ? (board.playerOriginYIndent - rect_y_half) : (board.size.y - 1 - board.playerOriginYIndent - rect_y_half);
+                player_rectangle_start.y = i == 0 ? (board.playerOriginYIndent - rect_y_half) : (board.size - 1 - board.playerOriginYIndent - rect_y_half);
                 player_rectangle_end.y = player_rectangle_start.y + board.startingTileRectangleSize.y - 1;
                 player_origin.y = player_rectangle_start.y + rect_y_half;
 

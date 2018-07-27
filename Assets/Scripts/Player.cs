@@ -20,8 +20,8 @@ namespace Gameplay
 
         void Awake()
         {
-            sources = new bool[Board.board.size.x, Board.board.size.y];
-            destinations = new bool[Board.board.size.x, Board.board.size.y];
+            sources = new bool[Board.board.size, Board.board.size];
+            destinations = new bool[Board.board.size, Board.board.size];
             structures = new List<Structure>();
         }
 
@@ -46,9 +46,9 @@ namespace Gameplay
         public static void Next()
         {
             player_on_turn = player_on_turn.opponent;
-            for (int x = 0; x < Board.board.size.x; x++)
+            for (int x = 0; x < Board.board.size; x++)
             {
-                for (int y = 0; y < Board.board.size.y; y++)
+                for (int y = 0; y < Board.board.size; y++)
                 {
                     Board.board[x, y].RefreshColor();
                 }
