@@ -26,8 +26,8 @@ namespace UI
         {
             if (zoomed) return;
             float scaledTileSize = view.rect.localScale.x * Board.board.tileSize;
-            Camera.main.transform.position = new Vector3(position.x - Board.board.center, position.y - Board.board.center, 0) * scaledTileSize;
-            Camera.main.orthographicSize = (float)view.zoomSize / Board.board.size * board_scale;
+            Camera.main.transform.position = new Vector3(position.x - Board.board.center.x, position.y - Board.board.center.y, 0) * scaledTileSize;
+            Camera.main.orthographicSize = (float)view.zoomSize / Board.board.size.y * board_scale;
 
             zoomed = true;
         }

@@ -10,6 +10,7 @@ namespace Gameplay
         public static Board board;
         void Start()
         {
+            System.Array.ForEach(structurePrefabs, x => x.CalculateShapes());
             board = this;
         }
 
@@ -31,8 +32,8 @@ namespace Gameplay
                 tiles[a, b] = value;
             }
         }
-        public int center;
-        public int size;
+        public Vector2Int center;
+        public Vector2Int size;
         public float tileSize;
         public static void Renew(int board_side_length)
         {
@@ -54,8 +55,8 @@ namespace Gameplay
             grid.cellSize = Vector2.one * board.tileSize * (1.0f - board.paddingToTileRatio);
             grid.spacing = Vector2.one * board.tileSize * board.paddingToTileRatio;
 
-            board.center = board_side_length / 2;
-            board.size = board_side_length;
+            board.center = Vector2Int.one * (board_side_length / 2);
+            board.size = Vector2Int.one * board_side_length;
 
             board.tiles = new Tile[board_side_length, board_side_length];
             for (int x = 0; x < board_side_length; x++)
@@ -96,7 +97,7 @@ namespace Gameplay
             {
                 Player player = Player.players[i];
                 int rect_y_half = Mathf.FloorToInt(board.startingTileRectangleSize.y / 2.0f);
-                player_rectangle_start.y = i == 0 ? (board.playerOriginYIndent - rect_y_half) : (board.size - 1 - board.playerOriginYIndent - rect_y_half);
+                player_rectangle_start.y = i == 0 ? (board.playerOriginYIndent - rect_y_half) : (board.size.y - 1 - board.playerOriginYIndent - rect_y_half);
                 player_rectangle_end.y = player_rectangle_start.y + board.startingTileRectangleSize.y - 1;
                 player_origin.y = player_rectangle_start.y + rect_y_half;
 
