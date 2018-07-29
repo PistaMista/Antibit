@@ -44,6 +44,8 @@ namespace Gameplay
                     for (int y = vertical ? 0 : footprint.y - 1; vertical ? (y < footprint.y) : (y >= 0); y += vertical ? 1 : -1)
                         shape[flipped ? y : x, flipped ? x : y] = construction[written_position++];
 
+                Debug.Log(shape.VisualizationString(x => " " + x.ToString().First() + " "));
+
                 if (!shapes.Contains(shape)) shapes.Add(shape);
             }
 
@@ -56,7 +58,6 @@ namespace Gameplay
             int ghostCount = 0;
             foreach (Structure prefab in Board.board.structurePrefabs)
             {
-                //ghostCount += (Board.board.size - prefab.footprint.x + 1) * (Board.board.size - prefab.footprint.y + 1) * (prefab.symmetrical ? 1 : 4);
                 foreach (Construction[,] shape in prefab.shapes)
                 {
                     ghostCount += Mathf.Clamp((Board.board.size.x - shape.GetLength(0) + 1) * (Board.board.size.y - shape.GetLength(1) + 1), 0, int.MaxValue);
@@ -65,6 +66,14 @@ namespace Gameplay
 
             ghosts = new byte[ghostCount];
             Debug.Log("Ghost count: " + ghostCount);
+
+            foreach (Structure prefab in Board.board.structurePrefabs)
+            {
+                foreach (Construction[,] shape in prefab.shapes)
+                {
+
+                }
+            }
         }
         public static void ChangeGhost(int id, sbyte change)
         {

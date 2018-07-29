@@ -25,4 +25,20 @@ public static class Extensions
     {
         array[position.x, position.y] = value;
     }
+
+    public static string VisualizationString<T>(this T[,] array, System.Converter<T, string> converter)
+    {
+        string result = "";
+        for (int x = 0; x < array.GetLength(0); x++)
+        {
+            for (int y = 0; y < array.GetLength(0); y++)
+            {
+                result += converter(array[x, y]);
+            }
+
+            result += "\n";
+        }
+
+        return result;
+    }
 }

@@ -14,6 +14,9 @@ namespace Gameplay
         private RawImage image;
         private Text text;
 
+        public int[] structureGhosts;
+        public sbyte[] structureGhostInfluences;
+
         private Player owner;
         public Player Owner
         {
