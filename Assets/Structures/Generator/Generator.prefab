@@ -51,11 +51,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11805886542a3854ebd14225baf9fbb2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  footprint: {x: 5, y: 5}
-  construction: 00000000000000000000000000000000000000000200000002000000000000000200000002000000020000000000000000000000000000000200000000000000000000000100000000000000000000000200000000000000010000000000000002000000
-  startingCompleteness: 2
-  requiredCompleteness: 15
-  xSymmetrical: 1
-  ySymmetrical: 0
-  corner: {fileID: 0}
-  orientation: {x: 0, y: 0}
+  shape: {fileID: 11400000, guid: 04ba1317e52b9e34aaa3f3ce73e43b6e, type: 2}
+  position: {fileID: 0}
+  variation: 0

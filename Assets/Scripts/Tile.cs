@@ -24,32 +24,47 @@ namespace Gameplay
             {
                 return owner;
             }
-            set
-            {
-                if (owner != value)
-                {
-                    Player last_owner = owner;
-                    owner = value;
-                    RecalculateSourceAndDestinationProvision();
+        }
+        public uint[] ghosts;
+        public sbyte[] ghostEffects;
 
-                    if (last_owner != null)
+        public void SetOwner(Player player, bool checkIntegrity)
+        {
+            if (owner != player)
+            {
+                Player last_owner = owner;
+                owner = player;
+
+                RecalculateSourceAndDestinationProvision();
+                UpdateStructureGhosts();
+
+
+
+                if (checkIntegrity && last_owner != null)
+                {
+                    foreach (Tile neighbour in neighbours)
                     {
-                        foreach (Tile neighbour in neighbours)
+                        if (neighbour != null && neighbour.owner == last_owner)
                         {
-                            if (neighbour != null && neighbour.owner == last_owner)
-                            {
-                                List<Tile> tiles = new List<Tile>();
-                                if (!TraceOrigin(neighbour, tiles)) tiles.ForEach(x => { x.owner = null; x.RecalculateSourceAndDestinationProvision(); });
-                            }
+                            List<Tile> tiles = new List<Tile>();
+                            if (!TraceOrigin(neighbour, tiles)) tiles.ForEach(x => x.SetOwner(null, false));
                         }
                     }
                 }
             }
         }
 
+        void UpdateStructureGhosts()
+        {
+            for (int i = 0; i < ghostEffects.Length; i++)
+            {
+                Shape.ChangeGhostCompleteness(ghosts[i], ghostEffects[i], Owner == null || Owner == Player.player_on_turn);
+            }
+        }
+
         public void RefreshColor()
         {
-            Color color = owner != null ? (owner.red ? Color.red : Color.green) : Color.gray;
+            Color color = Owner != null ? (Owner.red ? Color.red : Color.green) : Color.gray;
             color.a = Player.player_on_turn.destinations.Is(this) || Player.player_on_turn.sources.Is(this) ? 1.0f : 0.5f;
             image.color = color;
         }
@@ -65,10 +80,10 @@ namespace Gameplay
 
         public void RecalculateSourceAndDestinationProvision()
         {
-            if (owner != null)
+            if (Owner != null)
             {
-                owner.sources.Set(this, this != owner.origin);
-                owner.opponent.sources.Set(this, false);
+                Owner.sources.Set(this, this != Owner.origin);
+                Owner.opponent.sources.Set(this, false);
 
                 foreach (Player player in Player.players) player.destinations.Set(this, false);
             }
@@ -77,7 +92,7 @@ namespace Gameplay
                 foreach (Player player in Player.players)
                 {
                     player.sources.Set(this, false);
-                    player.destinations.Set(this, neighbours.Any(x => x != null && x.owner == player));
+                    player.destinations.Set(this, neighbours.Any(x => x != null && x.Owner == player));
                 }
             }
 
@@ -87,7 +102,7 @@ namespace Gameplay
                 {
                     foreach (Player player in Player.players)
                     {
-                        player.destinations.Set(neighbour, neighbour.owner == null && neighbour.neighbours.Any(x => x != null && x.owner == player));
+                        player.destinations.Set(neighbour, neighbour.Owner == null && neighbour.neighbours.Any(x => x != null && x.Owner == player));
                     }
                 }
             }
@@ -95,10 +110,10 @@ namespace Gameplay
 
         public static bool TraceOrigin(Tile root, List<Tile> explored)
         {
-            if (root == root.owner.origin) return true;
+            if (root == root.Owner.origin) return true;
             explored.Add(root);
 
-            IEnumerable<Tile> next = root.neighbours.Where(x => x != null && x.owner == root.owner && !explored.Contains(x)).OrderByDescending(x => (x.position - x.owner.origin.position).magnitude).Reverse();
+            IEnumerable<Tile> next = root.neighbours.Where(x => x != null && x.Owner == root.Owner && !explored.Contains(x)).OrderByDescending(x => (x.position - x.Owner.origin.position).magnitude).Reverse();
             foreach (Tile tile in next)
             {
                 if (TraceOrigin(tile, explored)) return true;
@@ -113,7 +128,7 @@ namespace Gameplay
             int y = direction.y == 0 ? 1 : direction.y;
             Push(tile, x + y);
 
-            tile.Owner = null;
+            tile.SetOwner(null, true);
         }
 
         static void Push(Tile root, int i)
@@ -121,9 +136,9 @@ namespace Gameplay
             Tile next = root.neighbours[i];
             if (next != null)
             {
-                if (next.owner != null) Push(next, i);
-                next.Owner = root.owner;
-                root.owner = null;
+                if (next.Owner != null) Push(next, i);
+                next.SetOwner(root.Owner, true);
+                root.SetOwner(null, false);
             }
         }
 
@@ -136,9 +151,9 @@ namespace Gameplay
         public void SelectDestination()
         {
             if (!Player.player_on_turn.destinations.Is(this)) throw new Exception("Tried to move " + Player.source.position + " into " + position + " - not a destination.");
-            Owner = Player.player_on_turn;
+            SetOwner(Player.player_on_turn, true);
 
-            Player.source.Owner = null;
+            Player.source.SetOwner(null, true);
             Player.source = null;
 
             Player.Next();

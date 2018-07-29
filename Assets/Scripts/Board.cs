@@ -10,7 +10,7 @@ namespace Gameplay
         public static Board board;
         void Start()
         {
-            System.Array.ForEach(structurePrefabs, x => x.CalculateShapes());
+            Shape.InitializeAll();
             board = this;
         }
 
@@ -86,7 +86,7 @@ namespace Gameplay
             }
 
             board.structures = new Dictionary<int, Structure>();
-            Structure.AddGhosts();
+            Shape.InitializeGhosts();
 
             Player.ReinitializePlayers(true);
 
@@ -107,7 +107,7 @@ namespace Gameplay
                 {
                     for (int y = player_rectangle_start.y; y <= player_rectangle_end.y; y++)
                     {
-                        board[x, y].Owner = player;
+                        board[x, y].SetOwner(player, false);
                     }
                 }
             }

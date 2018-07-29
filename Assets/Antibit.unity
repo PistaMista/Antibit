@@ -230,6 +230,48 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!1001 &374567439
+Prefab:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 4095257946676408, guid: e94f7603c4c0b024c941ab4f4d0454b3, type: 2}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4095257946676408, guid: e94f7603c4c0b024c941ab4f4d0454b3, type: 2}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4095257946676408, guid: e94f7603c4c0b024c941ab4f4d0454b3, type: 2}
+      propertyPath: m_LocalPosition.z
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 4095257946676408, guid: e94f7603c4c0b024c941ab4f4d0454b3, type: 2}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4095257946676408, guid: e94f7603c4c0b024c941ab4f4d0454b3, type: 2}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4095257946676408, guid: e94f7603c4c0b024c941ab4f4d0454b3, type: 2}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4095257946676408, guid: e94f7603c4c0b024c941ab4f4d0454b3, type: 2}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4095257946676408, guid: e94f7603c4c0b024c941ab4f4d0454b3, type: 2}
+      propertyPath: m_RootOrder
+      value: 4
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e94f7603c4c0b024c941ab4f4d0454b3, type: 2}
+  m_IsPrefabAsset: 0
 --- !u!1 &378870951
 GameObject:
   m_ObjectHideFlags: 0
@@ -257,12 +299,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11805886542a3854ebd14225baf9fbb2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  footprint: {x: 7, y: 9}
-  construction: 020000000000000000000000010000000000000000000000020000000200000000000000000000000100000000000000000000000200000001000000010000000000000000000000000000000100000001000000010000000100000002000000000000000200000001000000010000000100000001000000020000000000000002000000010000000100000001000000000000000000000000000000000000000000000001000000010000000000000001000000000000000100000000000000010000000100000001000000010000000000000001000000010000000100000001000000010000000100000000000000010000000100000001000000
-  startingCompleteness: 0
-  requiredCompleteness: 0
-  corner: {fileID: 0}
-  orientation: {x: 0, y: 0}
+  shape: {fileID: 0}
+  position: {fileID: 0}
+  variation: 0
 --- !u!4 &378870953
 Transform:
   m_ObjectHideFlags: 0
