@@ -51,6 +51,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11805886542a3854ebd14225baf9fbb2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shape: {fileID: 11400000, guid: 04ba1317e52b9e34aaa3f3ce73e43b6e, type: 2}
+  shapes:
+  - {fileID: 11400000, guid: 5216ae9cab6c8e5499923ab43e3f580e, type: 2}
   position: {fileID: 0}
   variation: 0

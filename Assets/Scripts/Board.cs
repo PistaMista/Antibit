@@ -10,8 +10,8 @@ namespace Gameplay
         public static Board board;
         void Start()
         {
-            Shape.InitializeAll();
             board = this;
+            Shape.InitializeAll();
         }
 
         public Tile tilePrefab;

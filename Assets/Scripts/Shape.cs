@@ -48,7 +48,13 @@ namespace Gameplay
 
                 Debug.Log(shape.VisualizationString(x => " " + x.ToString().First() + " "));
 
-                if (!variations.Contains(shape)) variations.Add(shape);
+                if (!variations.Any(x =>
+                {
+                    return shape.GetLength(0) == x.GetLength(0) &&
+                    shape.GetLength(1) == x.GetLength(1) &&
+                    shape.Cast<TileRequirement>().SequenceEqual(x.Cast<TileRequirement>());
+                }
+                )) variations.Add(shape);
             }
 
             this.variations = variations.ToArray();
@@ -83,13 +89,45 @@ namespace Gameplay
 
         static void InitializeGhostCompletenessChangingTileArrays()
         {
-            foreach (Structure prefab in Board.board.structurePrefabs)
+            int[,] edgeDistances = new int[Board.board.size.x, Board.board.size.y];
+            for (int x = 0; x < Board.board.size.x; x++)
             {
-                foreach (TileRequirement[,] shape in prefab.shape.variations)
+                for (int y = 0; y < Board.board.size.y; y++)
                 {
-
+                    edgeDistances[x, y] = (Mathf.Abs(Mathf.Abs(x - Board.board.center.x) - Board.board.center.x) + 1) * (Mathf.Abs(Mathf.Abs(y - Board.board.center.y) - Board.board.center.y) + 1);
                 }
             }
+
+            int[,] arraySizes = new int[Board.board.size.x, Board.board.size.y];
+            foreach (Structure structure in Board.board.structurePrefabs)
+            {
+                foreach (Shape shape in structure.shapes)
+                {
+                    int maxOverlap = shape.footprint.x * shape.footprint.y;
+                    int variations = shape.variations.Length;
+
+                    for (int x = 0; x < Board.board.size.x; x++)
+                    {
+                        for (int y = 0; y < Board.board.size.y; y++)
+                        {
+                            arraySizes[x, y] += Mathf.Clamp(edgeDistances[x, y], 0, maxOverlap) * variations;
+                        }
+                    }
+                }
+            }
+
+            for (int x = 0; x < Board.board.size.x; x++)
+            {
+                for (int y = 0; y < Board.board.size.y; y++)
+                {
+                    int size = arraySizes[x, y];
+                    Tile tile = Board.board[x, y];
+
+                    tile.structureGhosts = new uint[size];
+                    tile.structureGhostInfluences = new sbyte[size];
+                }
+            }
+
         }
         public static void ChangeGhostCompleteness(uint id, sbyte change, bool invert)
         {

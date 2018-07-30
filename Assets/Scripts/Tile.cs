@@ -14,7 +14,7 @@ namespace Gameplay
         private RawImage image;
         private Text text;
 
-        public int[] structureGhosts;
+        public uint[] structureGhosts;
         public sbyte[] structureGhostInfluences;
 
         private Player owner;
@@ -25,8 +25,6 @@ namespace Gameplay
                 return owner;
             }
         }
-        public uint[] ghosts;
-        public sbyte[] ghostEffects;
 
         public void SetOwner(Player player, bool checkIntegrity)
         {
@@ -56,9 +54,9 @@ namespace Gameplay
 
         void UpdateStructureGhosts()
         {
-            for (int i = 0; i < ghostEffects.Length; i++)
+            for (int i = 0; i < structureGhosts.Length; i++)
             {
-                Shape.ChangeGhostCompleteness(ghosts[i], ghostEffects[i], Owner == null || Owner == Player.player_on_turn);
+                Shape.ChangeGhostCompleteness(structureGhosts[i], structureGhostInfluences[i], Owner == null || Owner == Player.player_on_turn);
             }
         }
 

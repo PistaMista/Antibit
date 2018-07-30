@@ -31,7 +31,7 @@ public static class Extensions
         string result = "";
         for (int x = 0; x < array.GetLength(0); x++)
         {
-            for (int y = 0; y < array.GetLength(0); y++)
+            for (int y = 0; y < array.GetLength(1); y++)
             {
                 result += converter(array[x, y]);
             }
