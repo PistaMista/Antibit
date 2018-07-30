@@ -29,13 +29,12 @@ public static class Extensions
     public static string VisualizationString<T>(this T[,] array, System.Converter<T, string> converter)
     {
         string result = "";
-        for (int x = 0; x < array.GetLength(0); x++)
+        for (int y = 0; y < array.GetLength(1); y++)
         {
-            for (int y = 0; y < array.GetLength(1); y++)
+            for (int x = 0; x < array.GetLength(0); x++)
             {
                 result += converter(array[x, y]);
             }
-
             result += "\n";
         }
 
