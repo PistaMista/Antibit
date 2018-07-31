@@ -77,8 +77,9 @@ namespace Gameplay
 
         public static void InitializeGhosts()
         {
-            InitializeGhostCompletenessArrays();
-            InitializeGhostCompletenessChangingTileArrays();
+            AllocateGhostIdentificationPartitions();
+            AllocateAndPartitionGhostCompletenesses();
+            AllocateGhostTileHooks();
 
             int[,] hook_count = new int[Board.board.size.x, Board.board.size.y];
             uint ghost_count = 0;
@@ -111,20 +112,7 @@ namespace Gameplay
             }
         }
 
-        static void InitializeGhostCompletenessArrays()
-        {
-            int ghostCount = 0;
-            foreach (Structure structure in Board.board.structurePrefabs)
-                foreach (Shape shape in structure.shapes)
-                    foreach (TileRequirement[,] variation in shape.variations)
-                        ghostCount += Mathf.Clamp((Board.board.size.x - variation.GetLength(0) + 1) * (Board.board.size.y - variation.GetLength(1) + 1), 0, int.MaxValue);
-
-            Player.player_on_turn.ghosts = new byte[ghostCount];
-            Player.player_on_turn.opponent.ghosts = new byte[ghostCount];
-            Debug.Log("Ghost count: " + ghostCount);
-        }
-
-        static void InitializeGhostCompletenessChangingTileArrays()
+        static void AllocateGhostTileHooks()
         {
             Vector2Int[,] edgeDistances = new Vector2Int[Board.board.size.x, Board.board.size.y];
             for (int x = 0; x < Board.board.size.x; x++)
@@ -164,6 +152,47 @@ namespace Gameplay
                 }
             }
         }
+        static void AllocateGhostIdentificationPartitions()
+        {
+            structure_partition = new uint[2, Board.board.structurePrefabs.Length];
+            shape_partition = new uint[2, Board.board.structurePrefabs.Sum(x => x.shapes.Length)];
+            variation_partition = new uint[Board.board.structurePrefabs.Sum(x => x.shapes.Sum(y => y.variations.Length))];
+        }
+        static void AllocateAndPartitionGhostCompletenesses()
+        {
+            int ghostCount = 0;
+            int structure_count = 0;
+            int shape_count = 0;
+            int variation_count = 0;
+
+            foreach (Structure structure in Board.board.structurePrefabs)
+            {
+                structure_partition[1, structure_count] = (uint)shape_count;
+
+                foreach (Shape shape in structure.shapes)
+                {
+                    shape_partition[1, shape_count] = (uint)variation_count;
+
+                    foreach (TileRequirement[,] variation in shape.variations)
+                    {
+                        ghostCount += Mathf.Clamp((Board.board.size.x - variation.GetLength(0) + 1) * (Board.board.size.y - variation.GetLength(1) + 1), 0, int.MaxValue);
+
+                        variation_partition[variation_count++] = (uint)ghostCount;
+                    }
+
+                    shape_partition[0, shape_count++] = (uint)ghostCount;
+                }
+
+                structure_partition[structure_count++, 0] = (uint)ghostCount;
+            }
+
+            Player.player_on_turn.ghosts = new byte[ghostCount];
+            Player.player_on_turn.opponent.ghosts = new byte[ghostCount];
+            Debug.Log("Ghost count: " + ghostCount);
+        }
+        static uint[,] structure_partition;
+        static uint[,] shape_partition;
+        static uint[] variation_partition;
         enum TileChange
         {
             TAKE,
@@ -232,6 +261,42 @@ namespace Gameplay
         {
             int completeness = player.ghosts[id];
             completeness += change;
+
+            for (uint i1 = 0; i1 < structure_partition.Length; i1++)
+            {
+                if (id < structure_partition[0, i1])
+                {
+                    Structure template_structure = Board.board.structurePrefabs[i1];
+                    uint shape_start = structure_partition[1, i1];
+
+                    for (uint i2 = 0; i2 < template_structure.shapes.Length; i2++)
+                    {
+                        uint shape_id = i2 + shape_start;
+                        if (id < shape_partition[0, shape_id])
+                        {
+                            Shape template_shape = template_structure.shapes[i2];
+                            uint variation_start = shape_partition[1, shape_id];
+
+                            if (completeness == template_shape.requiredCompleteness)
+                            {
+                                for (uint i3 = 0; i3 < template_shape.variations.Length; i3++)
+                                {
+                                    uint variation_id = i3 + variation_start;
+                                    if (id < variation_partition[variation_id])
+                                    {
+
+                                        break;
+                                    }
+                                }
+                            }
+
+                            break;
+                        }
+                    }
+
+                    break;
+                }
+            }
 
             player.ghosts[id] = (byte)completeness;
         }
