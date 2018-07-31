@@ -8,11 +8,12 @@ namespace Gameplay
     [CreateAssetMenu(fileName = "Shape", menuName = "Shape", order = 1)]
     public class Shape : ScriptableObject
     {
-        public enum TileRequirement
+        public enum TileRequirement : byte
         {
-            OWNED,
-            ANY,
-            NONE
+            FRIENDLY,
+            ENEMY,
+            BLANK,
+            DOESNT_MATTER
         }
         public Vector2Int footprint;
         public TileRequirement[] baseSequence;
@@ -70,15 +71,13 @@ namespace Gameplay
 
         void CalculateRequiredCompleteness()
         {
-            startingCompleteness = (byte)baseSequence.Count(x => x == TileRequirement.NONE);
-            requiredCompleteness = (byte)baseSequence.Count(x => x == TileRequirement.OWNED);
+            startingCompleteness = (byte)baseSequence.Count(x => x == TileRequirement.BLANK);
+            requiredCompleteness = (byte)baseSequence.Count(x => x == TileRequirement.FRIENDLY || x == TileRequirement.ENEMY);
         }
 
-
-        static byte[] ghosts;
         public static void InitializeGhosts()
         {
-            InitializeGhostCompletenessArray();
+            InitializeGhostCompletenessArrays();
             InitializeGhostCompletenessChangingTileArrays();
 
             int[,] hook_count = new int[Board.board.size.x, Board.board.size.y];
@@ -90,17 +89,17 @@ namespace Gameplay
                     foreach (TileRequirement[,] variation in shape.variations)
                     {
                         Vector2Int bounds = new Vector2Int(Board.board.size.x - variation.GetLength(0), Board.board.size.y - variation.GetLength(1));
-                        for (int bx = 0; bx <= bounds.x; bx++)
+                        for (int board_x = 0; board_x <= bounds.x; board_x++)
                         {
-                            for (int by = 0; by <= bounds.y; by++)
+                            for (int board_y = 0; board_y <= bounds.y; board_y++)
                             {
-                                for (int sx = 0; sx < variation.GetLength(0); sx++)
+                                for (int structure_x = 0; structure_x < variation.GetLength(0); structure_x++)
                                 {
-                                    for (int sy = 0; sy < variation.GetLength(1); sy++)
+                                    for (int structure_y = 0; structure_y < variation.GetLength(1); structure_y++)
                                     {
-                                        Vector2Int pos = new Vector2Int(bx + sx, by + sy);
-                                        Board.board[pos.x, pos.y].structureGhosts[hook_count[pos.x, pos.y]] = ghost_count;
-                                        Board.board[pos.x, pos.y].structureGhostInfluences[hook_count[pos.x, pos.y]++] = (sbyte)(1 - (int)variation[sx, sy]);
+                                        Vector2Int pos = new Vector2Int(board_x + structure_x, board_y + structure_y);
+                                        Board.board[pos.x, pos.y].ghostIDs[hook_count[pos.x, pos.y]] = ghost_count;
+                                        Board.board[pos.x, pos.y].ghostRequirements[hook_count[pos.x, pos.y]++] = variation[structure_x, structure_y];
                                     }
                                 }
 
@@ -112,7 +111,7 @@ namespace Gameplay
             }
         }
 
-        static void InitializeGhostCompletenessArray()
+        static void InitializeGhostCompletenessArrays()
         {
             int ghostCount = 0;
             foreach (Structure structure in Board.board.structurePrefabs)
@@ -120,18 +119,19 @@ namespace Gameplay
                     foreach (TileRequirement[,] variation in shape.variations)
                         ghostCount += Mathf.Clamp((Board.board.size.x - variation.GetLength(0) + 1) * (Board.board.size.y - variation.GetLength(1) + 1), 0, int.MaxValue);
 
-            ghosts = new byte[ghostCount];
+            Player.player_on_turn.ghosts = new byte[ghostCount];
+            Player.player_on_turn.opponent.ghosts = new byte[ghostCount];
             Debug.Log("Ghost count: " + ghostCount);
         }
 
         static void InitializeGhostCompletenessChangingTileArrays()
         {
-            int[,] edgeDistances = new int[Board.board.size.x, Board.board.size.y];
+            Vector2Int[,] edgeDistances = new Vector2Int[Board.board.size.x, Board.board.size.y];
             for (int x = 0; x < Board.board.size.x; x++)
             {
                 for (int y = 0; y < Board.board.size.y; y++)
                 {
-                    edgeDistances[x, y] = (Mathf.Abs(Mathf.Abs(x - Board.board.center.x) - Board.board.center.x) + 1) * (Mathf.Abs(Mathf.Abs(y - Board.board.center.y) - Board.board.center.y) + 1);
+                    edgeDistances[x, y] = new Vector2Int((Mathf.Abs(Mathf.Abs(x - Board.board.center.x) - Board.board.center.x) + 1), (Mathf.Abs(Mathf.Abs(y - Board.board.center.y) - Board.board.center.y) + 1));
                 }
             }
 
@@ -140,14 +140,13 @@ namespace Gameplay
             {
                 foreach (Shape shape in structure.shapes)
                 {
-                    int maxOverlap = shape.footprint.x * shape.footprint.y;
                     int variations = shape.variations.Length;
 
                     for (int x = 0; x < Board.board.size.x; x++)
                     {
                         for (int y = 0; y < Board.board.size.y; y++)
                         {
-                            arraySizes[x, y] += Mathf.Clamp(edgeDistances[x, y], 0, maxOverlap) * variations;
+                            arraySizes[x, y] += (Mathf.Clamp(edgeDistances[x, y].x, 0, shape.footprint.x) * Mathf.Clamp(edgeDistances[x, y].y, 0, shape.footprint.y)) * variations;
                         }
                     }
                 }
@@ -160,16 +159,82 @@ namespace Gameplay
                     int size = arraySizes[x, y];
                     Tile tile = Board.board[x, y];
 
-                    tile.structureGhosts = new uint[size];
-                    tile.structureGhostInfluences = new sbyte[size];
+                    tile.ghostIDs = new uint[size];
+                    tile.ghostRequirements = new TileRequirement[size];
                 }
             }
+        }
+        enum TileChange
+        {
+            TAKE,
+            OVERTAKE,
+            UNTAKE
+        }
+        public static void UpdateGhostTile(Tile tile, Player old_owner, Player new_owner)
+        {
+            TileChange change = old_owner != null ? (new_owner != null ? TileChange.OVERTAKE : TileChange.UNTAKE) : TileChange.TAKE;
 
+            for (int i = 0; i < tile.ghostIDs.Length; i++)
+            {
+                uint id = tile.ghostIDs[i];
+                TileRequirement requirement = tile.ghostRequirements[i];
+
+                switch (requirement)
+                {
+                    case TileRequirement.FRIENDLY:
+                        switch (change)
+                        {
+                            case TileChange.TAKE:
+                                ChangeGhost(new_owner, id, 1);
+                                break;
+                            case TileChange.UNTAKE:
+                                ChangeGhost(old_owner, id, -1);
+                                break;
+                            case TileChange.OVERTAKE:
+                                ChangeGhost(old_owner, id, -1);
+                                ChangeGhost(new_owner, id, 1);
+                                break;
+                        }
+                        break;
+                    case TileRequirement.ENEMY:
+                        switch (change)
+                        {
+                            case TileChange.TAKE:
+                                ChangeGhost(new_owner.opponent, id, 1);
+                                break;
+                            case TileChange.UNTAKE:
+                                ChangeGhost(old_owner.opponent, id, -1);
+                                break;
+                            case TileChange.OVERTAKE:
+                                ChangeGhost(old_owner, id, 1);
+                                ChangeGhost(new_owner, id, -1);
+                                break;
+                        }
+                        break;
+                    case TileRequirement.BLANK:
+                        switch (change)
+                        {
+                            case TileChange.TAKE:
+                                ChangeGhost(new_owner, id, -1);
+                                break;
+                            case TileChange.UNTAKE:
+                                ChangeGhost(old_owner, id, 1);
+                                break;
+                            case TileChange.OVERTAKE:
+                                ChangeGhost(new_owner, id, -1);
+                                break;
+                        }
+                        break;
+                }
+            }
         }
 
-        public static void ChangeGhostCompleteness(uint id, sbyte change, bool invert)
+        static void ChangeGhost(Player player, uint id, int change)
         {
-            ghosts[id] = (byte)(invert ? ghosts[id] - change : ghosts[id] + change);
+            int completeness = player.ghosts[id];
+            completeness += change;
+
+            player.ghosts[id] = (byte)completeness;
         }
     }
 }

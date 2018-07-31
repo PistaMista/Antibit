@@ -86,9 +86,10 @@ namespace Gameplay
             }
 
             board.structures = new Dictionary<int, Structure>();
-            Shape.InitializeGhosts();
 
             Player.ReinitializePlayers(true);
+
+            Shape.InitializeGhosts();
 
             Vector2Int player_origin = new Vector2Int(Mathf.FloorToInt(board_side_length / 2.0f), 0);
             Vector2Int player_rectangle_start = new Vector2Int(player_origin.x - Mathf.FloorToInt(board.startingTileRectangleSize.x / 2.0f), 0);

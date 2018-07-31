@@ -14,8 +14,8 @@ namespace Gameplay
         private RawImage image;
         private Text text;
 
-        public uint[] structureGhosts;
-        public sbyte[] structureGhostInfluences;
+        public uint[] ghostIDs;
+        public Shape.TileRequirement[] ghostRequirements;
 
         private Player owner;
         public Player Owner
@@ -34,7 +34,7 @@ namespace Gameplay
                 owner = player;
 
                 RecalculateSourceAndDestinationProvision();
-                UpdateStructureGhosts();
+                Shape.UpdateGhostTile(this, last_owner, owner);
 
 
 
@@ -49,14 +49,6 @@ namespace Gameplay
                         }
                     }
                 }
-            }
-        }
-
-        void UpdateStructureGhosts()
-        {
-            for (int i = 0; i < structureGhosts.Length; i++)
-            {
-                Shape.ChangeGhostCompleteness(structureGhosts[i], structureGhostInfluences[i], Owner == null || Owner == Player.player_on_turn);
             }
         }
 
