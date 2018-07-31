@@ -33,42 +33,36 @@ namespace Gameplay
         }
         void CalculateVariations()
         {
-            List<TileRequirement[,]> variations = new List<TileRequirement[,]>();
             //0: L => R, B => T
             //1: B => T, R => L
             //2: R => L, T => B
             //3: T => B, L => R
-            for (int o = 0; o < 4; o++)
+            TileRequirement[][,] shapes = new TileRequirement[4][,];
+            for (int i = 0; i < 4; i++)
             {
-                bool vertical = o % 2 == 0;
+                shapes[i] = i % 2 == 0 ? new TileRequirement[footprint.x, footprint.y] : new TileRequirement[footprint.y, footprint.x];
+            }
 
-                bool top_to_bottom = o >= 2;
-                bool right_to_left = o == 1 || o == 2;
-
-                TileRequirement[,] shape = new TileRequirement[vertical ? footprint.x : footprint.y, vertical ? footprint.y : footprint.x];
-
-                int written_position = 0;
-
-                for (int a = 0; a < footprint.x; a++)
+            int written_position = 0;
+            for (int y = 0; y < footprint.y; y++)
+            {
+                for (int x = 0; x < footprint.x; x++)
                 {
-                    for (int b = 0; b < footprint.y; b++)
-                    {
-                        int x = right_to_left ? footprint.x - a - 1 : a;
-                        int y = top_to_bottom ? footprint.y - b - 1 : b;
-                        shape[vertical ? x : y, vertical ? y : x] = baseSequence[written_position++];
-                    }
+                    TileRequirement req = baseSequence[written_position++];
+                    shapes[0][x, y] = req;
+                    shapes[1][footprint.y - 1 - y, x] = req;
+                    shapes[2][footprint.x - 1 - x, footprint.y - 1 - y] = req;
+                    shapes[3][y, footprint.x - 1 - x] = req;
                 }
+            }
 
-
+            List<TileRequirement[,]> variations = new List<TileRequirement[,]>();
+            for (int i = 0; i < 4; i++)
+            {
+                TileRequirement[,] shape = shapes[i];
                 Debug.Log(shape.VisualizationString(x => " " + x.ToString().First() + " "));
-
-                if (!variations.Any(x =>
-                {
-                    return shape.GetLength(0) == x.GetLength(0) &&
-                    shape.GetLength(1) == x.GetLength(1) &&
-                    shape.Cast<TileRequirement>().SequenceEqual(x.Cast<TileRequirement>());
-                }
-                )) variations.Add(shape);
+                if (!variations.Any(x => x.GetLength(0) == shape.GetLength(0) && x.GetLength(1) == shape.GetLength(1) && x.Cast<TileRequirement>().SequenceEqual(shape.Cast<TileRequirement>())))
+                    variations.Add(shape);
             }
 
             this.variations = variations.ToArray();
@@ -87,6 +81,35 @@ namespace Gameplay
             InitializeGhostCompletenessArray();
             InitializeGhostCompletenessChangingTileArrays();
 
+            int[,] hook_count = new int[Board.board.size.x, Board.board.size.y];
+            uint ghost_count = 0;
+            foreach (Structure structure in Board.board.structurePrefabs)
+            {
+                foreach (Shape shape in structure.shapes)
+                {
+                    foreach (TileRequirement[,] variation in shape.variations)
+                    {
+                        Vector2Int bounds = new Vector2Int(Board.board.size.x - variation.GetLength(0), Board.board.size.y - variation.GetLength(1));
+                        for (int bx = 0; bx <= bounds.x; bx++)
+                        {
+                            for (int by = 0; by <= bounds.y; by++)
+                            {
+                                for (int sx = 0; sx < variation.GetLength(0); sx++)
+                                {
+                                    for (int sy = 0; sy < variation.GetLength(1); sy++)
+                                    {
+                                        Vector2Int pos = new Vector2Int(bx + sx, by + sy);
+                                        Board.board[pos.x, pos.y].structureGhosts[hook_count[pos.x, pos.y]] = ghost_count;
+                                        Board.board[pos.x, pos.y].structureGhostInfluences[hook_count[pos.x, pos.y]++] = (sbyte)(1 - (int)variation[sx, sy]);
+                                    }
+                                }
+
+                                ghost_count++;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         static void InitializeGhostCompletenessArray()
@@ -143,6 +166,7 @@ namespace Gameplay
             }
 
         }
+
         public static void ChangeGhostCompleteness(uint id, sbyte change, bool invert)
         {
             ghosts[id] = (byte)(invert ? ghosts[id] - change : ghosts[id] + change);
