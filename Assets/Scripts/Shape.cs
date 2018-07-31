@@ -216,12 +216,11 @@ namespace Gameplay
                         {
                             case TileChange.TAKE:
                                 ChangeGhost(new_owner, id, -1);
+                                ChangeGhost(new_owner.opponent, id, -1);
                                 break;
                             case TileChange.UNTAKE:
                                 ChangeGhost(old_owner, id, 1);
-                                break;
-                            case TileChange.OVERTAKE:
-                                ChangeGhost(new_owner, id, -1);
+                                ChangeGhost(old_owner.opponent, id, 1);
                                 break;
                         }
                         break;

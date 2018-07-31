@@ -20,7 +20,7 @@ namespace Gameplay
         public Vector2Int startingTileRectangleSize;
         public int playerOriginYIndent;
         Tile[,] tiles;
-        Dictionary<int, Structure> structures;
+        public Dictionary<uint, Structure> structures;
         public Tile this[int a, int b]
         {
             get
@@ -44,7 +44,7 @@ namespace Gameplay
                         Destroy(board[x, y].gameObject);
 
             if (board.structures != null)
-                foreach (KeyValuePair<int, Structure> item in board.structures)
+                foreach (KeyValuePair<uint, Structure> item in board.structures)
                     Destroy(item.Value.gameObject);
 
 
@@ -85,7 +85,7 @@ namespace Gameplay
                 }
             }
 
-            board.structures = new Dictionary<int, Structure>();
+            board.structures = new Dictionary<uint, Structure>();
 
             Player.ReinitializePlayers(true);
 
