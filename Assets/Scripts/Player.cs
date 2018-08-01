@@ -16,7 +16,6 @@ namespace Gameplay
         public bool[,] sources;
         public bool[,] destinations;
 
-        public byte[] ghosts;
         public List<Structure> structures;
 
         void Awake()

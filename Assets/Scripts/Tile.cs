@@ -14,9 +14,6 @@ namespace Gameplay
         private RawImage image;
         private Text text;
 
-        public uint[] ghostIDs;
-        public Shape.TileRequirement[] ghostRequirements;
-
         private Player owner;
         public Player Owner
         {
@@ -26,6 +23,8 @@ namespace Gameplay
             }
         }
 
+        public static Action<Tile, Player, Player> OnTileOwnershipChange;
+
         public void SetOwner(Player player, bool checkIntegrity)
         {
             if (owner != player)
@@ -34,8 +33,7 @@ namespace Gameplay
                 owner = player;
 
                 RecalculateSourceAndDestinationProvision();
-                Shape.UpdateGhostTile(this, last_owner, owner);
-
+                if (OnTileOwnershipChange != null) OnTileOwnershipChange(this, last_owner, owner);
 
 
                 if (checkIntegrity && last_owner != null)
