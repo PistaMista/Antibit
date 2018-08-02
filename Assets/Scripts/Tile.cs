@@ -139,11 +139,10 @@ namespace Gameplay
         public void SelectDestination()
         {
             if (!Player.player_on_turn.destinations.Is(this)) throw new Exception("Tried to move " + Player.source.position + " into " + position + " - not a destination.");
+            SetOwner(Player.player_on_turn, true);
 
             Player.source.SetOwner(null, true);
             Player.source = null;
-
-            SetOwner(Player.player_on_turn, true);
 
             Player.Next();
         }
