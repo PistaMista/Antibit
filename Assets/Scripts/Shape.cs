@@ -104,7 +104,8 @@ public class Shape : ScriptableObject
                                 }
                             }
 
-                            ghost_count++;
+                            ghost_completenesses[Player.player_on_turn][ghost_count] = shape.startingCompleteness;
+                            ghost_completenesses[Player.player_on_turn.opponent][ghost_count++] = shape.startingCompleteness;
                         }
                     }
                 }
