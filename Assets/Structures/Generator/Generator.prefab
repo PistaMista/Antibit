@@ -52,8 +52,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shapes:
-  - {fileID: 11400000, guid: 04ba1317e52b9e34aaa3f3ce73e43b6e, type: 2}
-  - {fileID: 11400000, guid: 43e3ca597e0402043811c08226217eee, type: 2}
-  - {fileID: 11400000, guid: 5216ae9cab6c8e5499923ab43e3f580e, type: 2}
+  - {fileID: 11400000, guid: b764c296ee7c7804299b3492e3c7e336, type: 2}
   position: {fileID: 0}
   variation: 0

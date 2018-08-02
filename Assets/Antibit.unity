@@ -148,7 +148,7 @@ MonoBehaviour:
   structurePrefabs:
   - {fileID: 114678702877687020, guid: e94f7603c4c0b024c941ab4f4d0454b3, type: 2}
   paddingToTileRatio: 0.1
-  startingTileRectangleSize: {x: 3, y: 3}
+  startingTileRectangleSize: {x: 7, y: 3}
   playerOriginYIndent: 2
   center: {x: 0, y: 0}
   size: {x: 0, y: 0}
