@@ -286,7 +286,11 @@ public class Shape : ScriptableObject
 
         if (completeness == shape.requiredCompleteness)
         {
-            Debug.Log("Shape completed");
+            Debug.Log("Completed " + structure.name + " type " + shape.name + " variation " + category[2] + " at " + position);
+        }
+        else if (Board.board.structures.ContainsKey(updated_id))
+        {
+            Debug.Log("Destroyed " + structure.name + " type " + shape.name + " variation " + category[2] + " at " + position);
         }
 
 

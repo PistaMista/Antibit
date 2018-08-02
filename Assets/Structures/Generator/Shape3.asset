@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Name: Shape3
   m_EditorClassIdentifier: 
   footprint: {x: 3, y: 3}
-  baseSequence: 000000000000000000
+  baseSequence: 020000000000000000
