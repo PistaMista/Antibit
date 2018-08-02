@@ -91,9 +91,9 @@ public class Shape : ScriptableObject
                 foreach (TileRequirement[,] variation in shape.variations)
                 {
                     Vector2Int bounds = new Vector2Int(Board.board.size.x - variation.GetLength(0), Board.board.size.y - variation.GetLength(1));
-                    for (int board_x = 0; board_x <= bounds.x; board_x++)
+                    for (int board_y = 0; board_y <= bounds.y; board_y++)
                     {
-                        for (int board_y = 0; board_y <= bounds.y; board_y++)
+                        for (int board_x = 0; board_x <= bounds.x; board_x++)
                         {
                             for (int structure_x = 0; structure_x < variation.GetLength(0); structure_x++)
                             {
