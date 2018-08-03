@@ -189,7 +189,7 @@ public class Shape : ScriptableObject
                 partition[1][0, shape_count++] = (uint)ghostCount;
             }
 
-            partition[0][structure_count++, 0] = (uint)ghostCount;
+            partition[0][0, structure_count++] = (uint)ghostCount;
         }
 
         ghost_completenesses = new Dictionary<Player, byte[]>();

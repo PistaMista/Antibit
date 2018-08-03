@@ -147,6 +147,7 @@ MonoBehaviour:
     type: 2}
   structurePrefabs:
   - {fileID: 114678702877687020, guid: e94f7603c4c0b024c941ab4f4d0454b3, type: 2}
+  - {fileID: 114188442416623008, guid: c284e5ef19f9ca04e95d7919d9a9a48f, type: 2}
   paddingToTileRatio: 0.1
   startingTileRectangleSize: {x: 7, y: 3}
   playerOriginYIndent: 2
