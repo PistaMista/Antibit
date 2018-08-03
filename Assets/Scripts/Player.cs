@@ -53,6 +53,8 @@ namespace Gameplay
                     Board.board[x, y].RefreshColor();
                 }
             }
+
+            player_on_turn.structures.ForEach(x => x.Activate());
         }
 
         public void UseAI()

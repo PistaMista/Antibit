@@ -323,15 +323,46 @@ public class Shape : ScriptableObject
             Structure new_structure = Instantiate(structure.gameObject).GetComponent<Structure>();
             new_structure.transform.SetParent(Board.board.transform);
 
-            new_structure.Form(category[1], category[2], category[3]);
+            CompositionMarker[,] composition = shape.variations[category[2]];
+            Vector2Int size = new Vector2Int(composition.GetLength(0), composition.GetLength(1));
+
+            int position = category[3];
+            int position_x_limit = Board.board.size.x - size.x + 1;
+
+            bool[,] formation = new bool[size.x, size.y];
+            int[,] markers = new int[size.x, size.y];
+            Tile tile = Board.board[position % position_x_limit, position / position_x_limit];
+
+            for (int x = 0; x < size.x; x++)
+            {
+                for (int y = 0; y < size.y; y++)
+                {
+                    formation[x, y] = composition[x, y].Ownership_requirement != Ownership.DOESNT_MATTER;
+                    markers[x, y] = composition[x, y].Marker_group;
+                }
+            }
+
+            new_structure.Form(tile, formation, markers, shape.markerSequence.Max());
+
             Board.board.structures.Add(updated_id, new_structure);
+            Player.player_on_turn.structures.Add(new_structure);
+
+            new_structure.owner = Player.player_on_turn;
         }
         else if (Board.board.structures.ContainsKey(updated_id))
         {
-            Debug.Log("Destroyed " + structure.name + " type " + shape.name + " variation " + category[2] + " at " + category[3]);
+            Structure old_structure = Board.board.structures[updated_id];
+            if (old_structure.owner == player)
+            {
+                Debug.Log("Destroyed " + structure.name + " type " + shape.name + " variation " + category[2] + " at " + category[3]);
 
-            Board.board.structures[updated_id].Deform();
-            Board.board.structures.Remove(updated_id);
+
+                Board.board.structures.Remove(updated_id);
+                old_structure.owner.structures.Remove(old_structure);
+                old_structure.Deform();
+
+                Destroy(old_structure.gameObject);
+            }
         }
 
         ghost_completenesses[player][updated_id] = (byte)completeness;

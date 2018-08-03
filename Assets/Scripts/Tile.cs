@@ -54,6 +54,7 @@ namespace Gameplay
         {
             Color color = Owner != null ? (Owner.red ? Color.red : Color.green) : Color.gray;
             color.a = Player.player_on_turn.destinations.Is(this) || Player.player_on_turn.sources.Is(this) ? 1.0f : 0.5f;
+            if (structure != null) color.b = 1.0f;
             image.color = color;
         }
 
