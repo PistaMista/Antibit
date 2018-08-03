@@ -7,16 +7,43 @@ using Gameplay;
 [CreateAssetMenu(fileName = "Shape", menuName = "Shape", order = 1)]
 public class Shape : ScriptableObject
 {
-    public enum TileRequirement : byte
+    public enum Ownership : byte
     {
         FRIENDLY,
         ENEMY,
-        BLANK,
+        NONE,
         DOESNT_MATTER
     }
     public Vector2Int footprint;
-    public TileRequirement[] baseSequence;
-    TileRequirement[][,] variations;
+    public Ownership[] ownershipSequence;
+    public byte[] markerSequence;
+    struct CompositionMarker
+    {
+        public CompositionMarker(Ownership requirement, byte marker)
+        {
+            ownership_requirement = requirement;
+            marker_group = marker;
+        }
+        Ownership ownership_requirement;
+        byte marker_group;
+
+        public Ownership Ownership_requirement
+        {
+            get
+            {
+                return ownership_requirement;
+            }
+        }
+
+        public byte Marker_group
+        {
+            get
+            {
+                return marker_group;
+            }
+        }
+    }
+    CompositionMarker[][,] variations;
     byte startingCompleteness;
     byte requiredCompleteness;
 
@@ -39,10 +66,10 @@ public class Shape : ScriptableObject
         //1: B => T, R => L
         //2: R => L, T => B
         //3: T => B, L => R
-        TileRequirement[][,] shapes = new TileRequirement[4][,];
+        CompositionMarker[][,] shapes = new CompositionMarker[4][,];
         for (int i = 0; i < 4; i++)
         {
-            shapes[i] = i % 2 == 0 ? new TileRequirement[footprint.x, footprint.y] : new TileRequirement[footprint.y, footprint.x];
+            shapes[i] = i % 2 == 0 ? new CompositionMarker[footprint.x, footprint.y] : new CompositionMarker[footprint.y, footprint.x];
         }
 
         int written_position = 0;
@@ -50,20 +77,21 @@ public class Shape : ScriptableObject
         {
             for (int x = 0; x < footprint.x; x++)
             {
-                TileRequirement req = baseSequence[written_position++];
-                shapes[0][x, y] = req;
-                shapes[1][footprint.y - 1 - y, x] = req;
-                shapes[2][footprint.x - 1 - x, footprint.y - 1 - y] = req;
-                shapes[3][y, footprint.x - 1 - x] = req;
+                CompositionMarker marker = new CompositionMarker(ownershipSequence[written_position], markerSequence[written_position++]);
+
+                shapes[0][x, y] = marker;
+                shapes[1][footprint.y - 1 - y, x] = marker;
+                shapes[2][footprint.x - 1 - x, footprint.y - 1 - y] = marker;
+                shapes[3][y, footprint.x - 1 - x] = marker;
             }
         }
 
-        List<TileRequirement[,]> variations = new List<TileRequirement[,]>();
+        List<CompositionMarker[,]> variations = new List<CompositionMarker[,]>();
         for (int i = 0; i < 4; i++)
         {
-            TileRequirement[,] shape = shapes[i];
-            Debug.Log(shape.VisualizationString(x => " " + x.ToString().First() + " "));
-            if (!variations.Any(x => x.GetLength(0) == shape.GetLength(0) && x.GetLength(1) == shape.GetLength(1) && x.Cast<TileRequirement>().SequenceEqual(shape.Cast<TileRequirement>())))
+            CompositionMarker[,] shape = shapes[i];
+            Debug.Log(shape.VisualizationString(x => " " + x.Ownership_requirement.ToString().First() + " "));
+            if (!variations.Any(x => x.GetLength(0) == shape.GetLength(0) && x.GetLength(1) == shape.GetLength(1) && x.Cast<CompositionMarker>().SequenceEqual(shape.Cast<CompositionMarker>())))
                 variations.Add(shape);
         }
 
@@ -72,8 +100,8 @@ public class Shape : ScriptableObject
 
     void CalculateRequiredCompleteness()
     {
-        startingCompleteness = (byte)baseSequence.Count(x => x == TileRequirement.BLANK);
-        requiredCompleteness = (byte)baseSequence.Count(x => x != TileRequirement.DOESNT_MATTER);
+        startingCompleteness = (byte)ownershipSequence.Count(x => x == Ownership.NONE);
+        requiredCompleteness = (byte)ownershipSequence.Count(x => x != Ownership.DOESNT_MATTER);
     }
 
     public static void InitializeGhosts()
@@ -89,7 +117,7 @@ public class Shape : ScriptableObject
         {
             foreach (Shape shape in structure.shapes)
             {
-                foreach (TileRequirement[,] variation in shape.variations)
+                foreach (CompositionMarker[,] variation in shape.variations)
                 {
                     Vector2Int bounds = new Vector2Int(Board.board.size.x - variation.GetLength(0), Board.board.size.y - variation.GetLength(1));
                     for (int board_y = 0; board_y <= bounds.y; board_y++)
@@ -101,7 +129,7 @@ public class Shape : ScriptableObject
                                 for (int structure_y = 0; structure_y < variation.GetLength(1); structure_y++)
                                 {
                                     Vector2Int pos = new Vector2Int(board_x + structure_x, board_y + structure_y);
-                                    ghost_tiles[pos.x, pos.y][hook_count[pos.x, pos.y]++] = new GhostHook(ghost_count, variation[structure_x, structure_y]);
+                                    ghost_tiles[pos.x, pos.y][hook_count[pos.x, pos.y]++] = new GhostHook(ghost_count, variation[structure_x, structure_y].Ownership_requirement);
                                 }
                             }
 
@@ -130,7 +158,7 @@ public class Shape : ScriptableObject
         {
             foreach (Shape shape in structure.shapes)
             {
-                foreach (TileRequirement[,] variation in shape.variations)
+                foreach (CompositionMarker[,] variation in shape.variations)
                 {
                     int xsize = variation.GetLength(0);
                     int ysize = variation.GetLength(1);
@@ -177,7 +205,7 @@ public class Shape : ScriptableObject
             {
                 partition[1][1, shape_count] = (uint)variation_count;
 
-                foreach (TileRequirement[,] variation in shape.variations)
+                foreach (CompositionMarker[,] variation in shape.variations)
                 {
                     partition[2][1, variation_count] = (uint)ghostCount;
 
@@ -201,13 +229,13 @@ public class Shape : ScriptableObject
     }
     struct GhostHook
     {
-        public GhostHook(uint ghost, TileRequirement requirement)
+        public GhostHook(uint ghost, Ownership requirement)
         {
             this.ghost = ghost;
             this.requirement = requirement;
         }
         public uint ghost;
-        public TileRequirement requirement;
+        public Ownership requirement;
     }
     static GhostHook[,][] ghost_tiles;
     static Dictionary<Player, byte[]> ghost_completenesses;
@@ -231,7 +259,7 @@ public class Shape : ScriptableObject
 
             switch (hook.requirement)
             {
-                case TileRequirement.FRIENDLY:
+                case Ownership.FRIENDLY:
                     switch (change)
                     {
                         case TileChange.TAKE:
@@ -246,7 +274,7 @@ public class Shape : ScriptableObject
                             break;
                     }
                     break;
-                case TileRequirement.ENEMY:
+                case Ownership.ENEMY:
                     switch (change)
                     {
                         case TileChange.TAKE:
@@ -261,7 +289,7 @@ public class Shape : ScriptableObject
                             break;
                     }
                     break;
-                case TileRequirement.BLANK:
+                case Ownership.NONE:
                     switch (change)
                     {
                         case TileChange.TAKE:
@@ -287,20 +315,24 @@ public class Shape : ScriptableObject
 
         Structure structure = Board.board.structurePrefabs[category[0]];
         Shape shape = structure.shapes[category[1]];
-        TileRequirement[,] variation = shape.variations[category[2]];
-        int position = category[3];
 
         if (completeness == shape.requiredCompleteness)
         {
-            Debug.Log("Completed " + structure.name + " type " + shape.name + " variation " + category[2] + " at " + position);
+            Debug.Log("Completed " + structure.name + " type " + shape.name + " variation " + category[2] + " at " + category[3]);
+
+            Structure new_structure = Instantiate(structure.gameObject).GetComponent<Structure>();
+            new_structure.transform.SetParent(Board.board.transform);
+
+            new_structure.Form(category[1], category[2], category[3]);
+            Board.board.structures.Add(updated_id, new_structure);
         }
         else if (Board.board.structures.ContainsKey(updated_id))
         {
-            Debug.Log("Destroyed " + structure.name + " type " + shape.name + " variation " + category[2] + " at " + position);
+            Debug.Log("Destroyed " + structure.name + " type " + shape.name + " variation " + category[2] + " at " + category[3]);
+
+            Board.board.structures[updated_id].Deform();
+            Board.board.structures.Remove(updated_id);
         }
-
-
-
 
         ghost_completenesses[player][updated_id] = (byte)completeness;
     }

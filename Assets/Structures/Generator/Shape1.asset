@@ -11,5 +11,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e7bc5b6ec30d344295eb7b08cecde6b, type: 3}
   m_Name: Shape1
   m_EditorClassIdentifier: 
-  footprint: {x: 3, y: 3}
-  baseSequence: 000000000202000000
+  footprint: {x: 5, y: 3}
+  ownershipSequence: 030000000300000200000200020002
+  markerSequence: 000000000000000000000000010000

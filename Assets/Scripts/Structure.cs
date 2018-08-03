@@ -11,6 +11,20 @@ namespace Gameplay
 
 
         public Tile position;
-        public byte variation;
+
+        public void Form(int shape, int variation, int position)
+        {
+
+        }
+
+        protected virtual void Form(Tile[][] markedTiles)
+        {
+
+        }
+
+        public virtual void Deform()
+        {
+
+        }
     }
 }
