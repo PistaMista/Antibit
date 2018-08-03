@@ -84,6 +84,7 @@ public class Shape : ScriptableObject
 
         int[,] hook_count = new int[Board.board.size.x, Board.board.size.y];
         uint ghost_count = 0;
+
         foreach (Structure structure in Board.board.structurePrefabs)
         {
             foreach (Shape shape in structure.shapes)
@@ -129,13 +130,17 @@ public class Shape : ScriptableObject
         {
             foreach (Shape shape in structure.shapes)
             {
-                int variations = shape.variations.Length;
-
-                for (int x = 0; x < Board.board.size.x; x++)
+                foreach (TileRequirement[,] variation in shape.variations)
                 {
-                    for (int y = 0; y < Board.board.size.y; y++)
+                    int xsize = variation.GetLength(0);
+                    int ysize = variation.GetLength(1);
+
+                    for (int x = 0; x < Board.board.size.x; x++)
                     {
-                        arraySizes[x, y] += (Mathf.Clamp(edgeDistances[x, y].x, 0, shape.footprint.x) * Mathf.Clamp(edgeDistances[x, y].y, 0, shape.footprint.y)) * variations;
+                        for (int y = 0; y < Board.board.size.y; y++)
+                        {
+                            arraySizes[x, y] += (Mathf.Clamp(edgeDistances[x, y].x, 0, xsize) * Mathf.Clamp(edgeDistances[x, y].y, 0, ysize));
+                        }
                     }
                 }
             }
