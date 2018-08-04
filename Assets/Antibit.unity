@@ -146,7 +146,8 @@ MonoBehaviour:
   tilePrefab: {fileID: 114592877005138900, guid: 36b017cc53ebf5449bb362fdee747f40,
     type: 2}
   structurePrefabs:
-  - {fileID: 114678702877687020, guid: e94f7603c4c0b024c941ab4f4d0454b3, type: 2}
+  - {fileID: 114781060442184650, guid: e94f7603c4c0b024c941ab4f4d0454b3, type: 2}
+  - {fileID: 114176702770896844, guid: e5c68acad47f5014c83cad45fec98fe5, type: 2}
   paddingToTileRatio: 0.1
   startingTileRectangleSize: {x: 7, y: 3}
   playerOriginYIndent: 2

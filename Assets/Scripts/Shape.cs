@@ -4,7 +4,7 @@ using UnityEngine;
 using System.Linq;
 using Gameplay;
 
-[CreateAssetMenu(fileName = "Shape", menuName = "Shape", order = 1)]
+[CreateAssetMenu(fileName = "Shape", menuName = "Shape", order = 2)]
 public class Shape : ScriptableObject
 {
     public enum Ownership : byte
