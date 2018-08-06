@@ -14,62 +14,50 @@ public class Shape : ScriptableObject
         NONE,
         DOESNT_MATTER
     }
+
+
+    private sbyte requiredProgress;
+
     public Vector2Int footprint;
     public Ownership[] ownershipSequence;
     public byte[] markerSequence;
-    struct CompositionMarker
+    private struct Composition : IEqualityComparer<Composition>
     {
-        public CompositionMarker(Ownership requirement, byte marker)
+        public bool Equals(Composition a, Composition b)
         {
-            ownership_requirement = requirement;
-            marker_group = marker;
+            return a.ownerships.GetLength(0) == b.ownerships.GetLength(0) &&
+            a.ownerships.GetLength(1) == b.ownerships.GetLength(1) &&
+            a.ownerships.Cast<Ownership>().SequenceEqual(b.ownerships.Cast<Ownership>()) &&
+            a.markers.GetLength(0) == b.markers.GetLength(0) &&
+            a.markers.GetLength(1) == b.markers.GetLength(1) &&
+            a.markers.Cast<byte>().SequenceEqual(b.markers.Cast<byte>());
         }
-        Ownership ownership_requirement;
-        byte marker_group;
-
-        public Ownership Ownership_requirement
+        public int GetHashCode(Composition x)
         {
-            get
-            {
-                return ownership_requirement;
-            }
+            return 23 * ownerships.GetHashCode() + markers.GetHashCode();
         }
-
-        public byte Marker_group
+        public Composition(int size_x, int size_y)
         {
-            get
-            {
-                return marker_group;
-            }
+            ownerships = new Ownership[size_x, size_y];
+            markers = new byte[size_x, size_y];
+            size = new Vector2Int(size_x, size_y);
         }
+        public void SetPair(int x, int y, Ownership ownership, byte marker)
+        {
+            ownerships[x, y] = ownership;
+            markers[x, y] = marker;
+        }
+        public readonly Vector2Int size;
+        public Ownership[,] ownerships;
+        byte[,] markers;
     }
-    CompositionMarker[][,] variations;
-    byte startingCompleteness;
-    byte requiredCompleteness;
-
-    public static void InitializeAll()
+    private Composition[] compositions;
+    private void Compose()
     {
-        foreach (Structure structure in Board.board.structurePrefabs)
-        {
-            foreach (Shape shape in structure.shapes)
-            {
-                shape.CalculateVariations();
-                shape.CalculateRequiredCompleteness();
-            }
-        }
-
-        Tile.OnTileOwnershipChange += UpdateGhostTile;
-    }
-    void CalculateVariations()
-    {
-        //0: L => R, B => T
-        //1: B => T, R => L
-        //2: R => L, T => B
-        //3: T => B, L => R
-        CompositionMarker[][,] shapes = new CompositionMarker[4][,];
+        compositions = new Composition[4];
         for (int i = 0; i < 4; i++)
         {
-            shapes[i] = i % 2 == 0 ? new CompositionMarker[footprint.x, footprint.y] : new CompositionMarker[footprint.y, footprint.x];
+            compositions[i] = i % 2 == 0 ? new Composition(footprint.x, footprint.y) : new Composition(footprint.y, footprint.x);
         }
 
         int written_position = 0;
@@ -77,318 +65,133 @@ public class Shape : ScriptableObject
         {
             for (int x = 0; x < footprint.x; x++)
             {
-                CompositionMarker marker = new CompositionMarker(ownershipSequence[written_position], markerSequence[written_position++]);
+                Ownership ownership = ownershipSequence[written_position];
+                byte marker = markerSequence[written_position++];
 
-                shapes[0][x, y] = marker;
-                shapes[1][footprint.y - 1 - y, x] = marker;
-                shapes[2][footprint.x - 1 - x, footprint.y - 1 - y] = marker;
-                shapes[3][y, footprint.x - 1 - x] = marker;
+                compositions[0].SetPair(x, y, ownership, marker);
+                compositions[1].SetPair(footprint.y - 1 - y, x, ownership, marker);
+                compositions[2].SetPair(footprint.x - 1 - x, footprint.y - 1 - y, ownership, marker);
+                compositions[3].SetPair(y, footprint.x - 1 - 1, ownership, marker);
             }
         }
 
-        List<CompositionMarker[,]> variations = new List<CompositionMarker[,]>();
-        for (int i = 0; i < 4; i++)
-        {
-            CompositionMarker[,] shape = shapes[i];
-            Debug.Log(shape.VisualizationString(x => " " + x.Ownership_requirement.ToString().First() + " "));
-            if (!variations.Any(x => x.GetLength(0) == shape.GetLength(0) && x.GetLength(1) == shape.GetLength(1) && x.Cast<CompositionMarker>().SequenceEqual(shape.Cast<CompositionMarker>())))
-                variations.Add(shape);
-        }
+        compositions = compositions.Distinct().ToArray();
 
-        this.variations = variations.ToArray();
+        requiredProgress = (sbyte)ownershipSequence.Count(x => x == Ownership.FRIENDLY || x == Ownership.ENEMY);
     }
-
-    void CalculateRequiredCompleteness()
+    public static void ComposeAll()
     {
-        startingCompleteness = (byte)ownershipSequence.Count(x => x == Ownership.NONE);
-        requiredCompleteness = (byte)ownershipSequence.Count(x => x != Ownership.DOESNT_MATTER);
-    }
-
-    public static void InitializeGhosts()
-    {
-        AllocateGhostIdentificationPartitions();
-        AllocateAndPartitionGhostCompletenesses();
-        AllocateGhostTileHooks();
-
-        int[,] hook_count = new int[Board.board.size.x, Board.board.size.y];
-        uint ghost_count = 0;
-
         foreach (Structure structure in Board.board.structurePrefabs)
-        {
             foreach (Shape shape in structure.shapes)
-            {
-                foreach (CompositionMarker[,] variation in shape.variations)
-                {
-                    Vector2Int bounds = new Vector2Int(Board.board.size.x - variation.GetLength(0), Board.board.size.y - variation.GetLength(1));
-                    for (int board_y = 0; board_y <= bounds.y; board_y++)
-                    {
-                        for (int board_x = 0; board_x <= bounds.x; board_x++)
-                        {
-                            for (int structure_x = 0; structure_x < variation.GetLength(0); structure_x++)
-                            {
-                                for (int structure_y = 0; structure_y < variation.GetLength(1); structure_y++)
-                                {
-                                    Vector2Int pos = new Vector2Int(board_x + structure_x, board_y + structure_y);
-                                    ghost_tiles[pos.x, pos.y][hook_count[pos.x, pos.y]++] = new GhostHook(ghost_count, variation[structure_x, structure_y].Ownership_requirement);
-                                }
-                            }
-
-                            ghost_completenesses[Player.player_on_turn][ghost_count] = shape.startingCompleteness;
-                            ghost_completenesses[Player.player_on_turn.opponent][ghost_count++] = shape.startingCompleteness;
-                        }
-                    }
-                }
-            }
-        }
+                shape.Compose();
     }
 
-    static void AllocateGhostTileHooks()
+    struct Ghost
     {
-        Vector2Int[,] edgeDistances = new Vector2Int[Board.board.size.x, Board.board.size.y];
-        for (int x = 0; x < Board.board.size.x; x++)
-        {
-            for (int y = 0; y < Board.board.size.y; y++)
-            {
-                edgeDistances[x, y] = new Vector2Int((Mathf.Abs(Mathf.Abs(x - Board.board.center.x) - Board.board.center.x) + 1), (Mathf.Abs(Mathf.Abs(y - Board.board.center.y) - Board.board.center.y) + 1));
-            }
-        }
-
-        int[,] arraySizes = new int[Board.board.size.x, Board.board.size.y];
-        foreach (Structure structure in Board.board.structurePrefabs)
-        {
-            foreach (Shape shape in structure.shapes)
-            {
-                foreach (CompositionMarker[,] variation in shape.variations)
-                {
-                    int xsize = variation.GetLength(0);
-                    int ysize = variation.GetLength(1);
-
-                    for (int x = 0; x < Board.board.size.x; x++)
-                    {
-                        for (int y = 0; y < Board.board.size.y; y++)
-                        {
-                            arraySizes[x, y] += (Mathf.Clamp(edgeDistances[x, y].x, 0, xsize) * Mathf.Clamp(edgeDistances[x, y].y, 0, ysize));
-                        }
-                    }
-                }
-            }
-        }
-
-        ghost_tiles = new GhostHook[Board.board.size.x, Board.board.size.y][];
-        for (int x = 0; x < Board.board.size.x; x++)
-        {
-            for (int y = 0; y < Board.board.size.y; y++)
-            {
-                ghost_tiles[x, y] = new GhostHook[arraySizes[x, y]];
-            }
-        }
+        public uint progress_record;
+        public Ownership requirement;
     }
-    static void AllocateGhostIdentificationPartitions()
+    static Ghost[,][] ghosts;
+    static Dictionary<Player, sbyte[]> ghost_progress;
+    public static void AddGhosts()
     {
-        partition = new uint[3][,];
-        partition[0] = new uint[2, Board.board.structurePrefabs.Length];
-        partition[1] = new uint[2, Board.board.structurePrefabs.Sum(x => x.shapes.Length)];
-        partition[2] = new uint[2, Board.board.structurePrefabs.Sum(x => x.shapes.Sum(y => y.variations.Length))];
-    }
-    static void AllocateAndPartitionGhostCompletenesses()
-    {
-        int ghostCount = 0;
+        //Allocate ghost progress records and create catalog
+        int ghost_progress_count = 0;
         int structure_count = 0;
         int shape_count = 0;
         int variation_count = 0;
 
+        catalog = new uint[3][,];
+        catalog[0] = new uint[2, Board.board.structurePrefabs.Length];
+        catalog[1] = new uint[2, Board.board.structurePrefabs.Sum(x => x.shapes.Length)];
+        catalog[2] = new uint[2, Board.board.structurePrefabs.Sum(x => x.shapes.Sum(y => y.compositions.Length))];
+
         foreach (Structure structure in Board.board.structurePrefabs)
         {
-            partition[0][1, structure_count] = (uint)shape_count;
+            catalog[0][1, structure_count] = (uint)shape_count;
 
             foreach (Shape shape in structure.shapes)
             {
-                partition[1][1, shape_count] = (uint)variation_count;
+                catalog[1][1, shape_count] = (uint)variation_count;
 
-                foreach (CompositionMarker[,] variation in shape.variations)
+                foreach (Composition composition in shape.compositions)
                 {
-                    partition[2][1, variation_count] = (uint)ghostCount;
+                    catalog[2][1, variation_count] = (uint)ghost_progress_count;
 
-                    ghostCount += Mathf.Clamp((Board.board.size.x - variation.GetLength(0) + 1) * (Board.board.size.y - variation.GetLength(1) + 1), 0, int.MaxValue);
+                    ghost_progress_count += Mathf.Clamp((Board.board.size.x - composition.size.x + 1) * (Board.board.size.y - composition.size.y + 1), 0, int.MaxValue);
 
-                    partition[2][0, variation_count++] = (uint)ghostCount;
+                    catalog[2][0, variation_count++] = (uint)ghost_progress_count;
                 }
 
-                partition[1][0, shape_count++] = (uint)ghostCount;
+                catalog[1][0, shape_count++] = (uint)ghost_progress_count;
             }
 
-            partition[0][0, structure_count++] = (uint)ghostCount;
+            catalog[0][0, structure_count++] = (uint)ghost_progress_count;
         }
 
-        ghost_completenesses = new Dictionary<Player, byte[]>();
+        sbyte[] ghost_progress = new sbyte[ghost_progress_count];
+        Debug.Log("Ghost progress count: " + ghost_progress_count);
 
-        ghost_completenesses.Add(Player.player_on_turn, new byte[ghostCount]);
-        ghost_completenesses.Add(Player.player_on_turn.opponent, new byte[ghostCount]);
+        //Add the ghosts to the tiles
+        int[,] ghost_count = new int[Board.board.size.x, Board.board.size.y];
+        Vector2Int[,] tile_edge_distances = new Vector2Int[Board.board.size.x, Board.board.size.y];
 
-        Debug.Log("Ghost count: " + ghostCount);
-    }
-    struct GhostHook
-    {
-        public GhostHook(uint ghost, Ownership requirement)
-        {
-            this.ghost = ghost;
-            this.requirement = requirement;
-        }
-        public uint ghost;
-        public Ownership requirement;
-    }
-    static GhostHook[,][] ghost_tiles;
-    static Dictionary<Player, byte[]> ghost_completenesses;
-    static uint[][,] partition;
-    enum TileChange
-    {
-        TAKE,
-        OVERTAKE,
-        UNTAKE
-    }
-    static uint updated_id;
-    public static void UpdateGhostTile(Tile tile, Player old_owner, Player new_owner)
-    {
-        TileChange change = old_owner != null ? (new_owner != null ? TileChange.OVERTAKE : TileChange.UNTAKE) : TileChange.TAKE;
-        GhostHook[] hooks = ghost_tiles[tile.position.x, tile.position.y];
+        for (int x = 0; x < Board.board.size.x; x++)
+            for (int y = 0; y < Board.board.size.y; y++)
+                tile_edge_distances[x, y] = new Vector2Int((Mathf.Abs(Mathf.Abs(x - Board.board.center.x) - Board.board.center.x) + 1), (Mathf.Abs(Mathf.Abs(y - Board.board.center.y) - Board.board.center.y) + 1));
 
-        for (int i = 0; i < hooks.Length; i++)
-        {
-            GhostHook hook = hooks[i];
-            updated_id = hook.ghost;
+        foreach (Structure structure in Board.board.structurePrefabs)
+            foreach (Shape shape in structure.shapes)
+                foreach (Composition composition in shape.compositions)
+                    for (int x = 0; x < Board.board.size.x; x++)
+                        for (int y = 0; y < Board.board.size.y; y++)
+                            ghost_count[x, y] += (Mathf.Clamp(tile_edge_distances[x, y].x, 0, composition.size.x) * Mathf.Clamp(tile_edge_distances[x, y].y, 0, composition.size.y));
 
-            switch (hook.requirement)
+        ghosts = new Ghost[Board.board.size.x, Board.board.size.y][];
+
+        for (int x = 0; x < Board.board.size.x; x++)
+            for (int y = 0; y < Board.board.size.y; y++)
             {
-                case Ownership.FRIENDLY:
-                    switch (change)
-                    {
-                        case TileChange.TAKE:
-                            ChangeGhost(new_owner, 1);
-                            break;
-                        case TileChange.UNTAKE:
-                            ChangeGhost(old_owner, -1);
-                            break;
-                        case TileChange.OVERTAKE:
-                            ChangeGhost(old_owner, -1);
-                            ChangeGhost(new_owner, 1);
-                            break;
-                    }
-                    break;
-                case Ownership.ENEMY:
-                    switch (change)
-                    {
-                        case TileChange.TAKE:
-                            ChangeGhost(new_owner.opponent, 1);
-                            break;
-                        case TileChange.UNTAKE:
-                            ChangeGhost(old_owner.opponent, -1);
-                            break;
-                        case TileChange.OVERTAKE:
-                            ChangeGhost(old_owner, 1);
-                            ChangeGhost(new_owner, -1);
-                            break;
-                    }
-                    break;
-                case Ownership.NONE:
-                    switch (change)
-                    {
-                        case TileChange.TAKE:
-                            ChangeGhost(new_owner, -1);
-                            ChangeGhost(new_owner.opponent, -1);
-                            break;
-                        case TileChange.UNTAKE:
-                            ChangeGhost(old_owner, 1);
-                            ChangeGhost(old_owner.opponent, 1);
-                            break;
-                    }
-                    break;
+                ghosts[x, y] = new Ghost[ghost_count[x, y]];
+                ghost_count[x, y] = 0;
             }
-        }
-    }
 
-    static void ChangeGhost(Player player, int change)
-    {
-        int completeness = ghost_completenesses[player][updated_id];
-        completeness += change;
+        uint progress_record = 0;
 
-        int[] category = Categorize(updated_id, partition);
-
-        Structure structure = Board.board.structurePrefabs[category[0]];
-        Shape shape = structure.shapes[category[1]];
-
-        if (completeness == shape.requiredCompleteness)
+        foreach (Structure structure in Board.board.structurePrefabs)
         {
-            Debug.Log("Completed " + structure.name + " type " + shape.name + " variation " + category[2] + " at " + category[3]);
-
-            Structure new_structure = Instantiate(structure.gameObject).GetComponent<Structure>();
-            new_structure.transform.SetParent(Board.board.transform);
-
-            CompositionMarker[,] composition = shape.variations[category[2]];
-            Vector2Int size = new Vector2Int(composition.GetLength(0), composition.GetLength(1));
-
-            int position = category[3];
-            int position_x_limit = Board.board.size.x - size.x + 1;
-
-            bool[,] formation = new bool[size.x, size.y];
-            int[,] markers = new int[size.x, size.y];
-            Tile tile = Board.board[position % position_x_limit, position / position_x_limit];
-
-            for (int x = 0; x < size.x; x++)
+            foreach (Shape shape in structure.shapes)
             {
-                for (int y = 0; y < size.y; y++)
+                foreach (Composition composition in shape.compositions)
                 {
-                    formation[x, y] = composition[x, y].Ownership_requirement != Ownership.DOESNT_MATTER;
-                    markers[x, y] = composition[x, y].Marker_group;
-                }
-            }
+                    Vector2Int bounds = new Vector2Int(Board.board.size.x - composition.size.x, Board.board.size.y - composition.size.y);
+                    for (int board_y = 0; board_y <= bounds.y; board_y++)
+                    {
+                        for (int board_x = 0; board_x <= bounds.x; board_x++)
+                        {
+                            for (int composition_x = 0; composition_x < composition.size.x; composition_x++)
+                            {
+                                for (int composition_y = 0; composition_y < composition.size.y; composition_y++)
+                                {
+                                    Vector2Int pos = new Vector2Int(board_x + composition_x, board_y + composition_y);
+                                    Ghost ghost;
 
-            new_structure.Form(tile, formation, markers, shape.markerSequence.Max());
+                                    ghost.progress_record = progress_record++;
+                                    ghost.requirement = composition.ownerships[composition_x, composition_y];
 
-            Board.board.structures.Add(updated_id, new_structure);
-            Player.player_on_turn.structures.Add(new_structure);
-
-            new_structure.owner = Player.player_on_turn;
-        }
-        else if (Board.board.structures.ContainsKey(updated_id))
-        {
-            Structure old_structure = Board.board.structures[updated_id];
-            if (old_structure.owner == player)
-            {
-                Debug.Log("Destroyed " + structure.name + " type " + shape.name + " variation " + category[2] + " at " + category[3]);
-
-
-                Board.board.structures.Remove(updated_id);
-                old_structure.owner.structures.Remove(old_structure);
-                old_structure.Deform();
-
-                Destroy(old_structure.gameObject);
-            }
-        }
-
-        ghost_completenesses[player][updated_id] = (byte)completeness;
-    }
-
-    static int[] Categorize(uint id, uint[][,] partition)
-    {
-        int[] result = new int[partition.Length + 1];
-        int startingPoint = 0;
-
-        for (int depth = 0; depth < partition.Length; depth++)
-        {
-            for (int i = startingPoint; i < partition[depth].GetLength(1); i++)
-            {
-                uint candidate = partition[depth][0, i];
-                if (id < candidate)
-                {
-                    result[depth] = i - startingPoint;
-                    startingPoint = (int)partition[depth][1, i];
-                    break;
+                                    ghosts[pos.x, pos.y][ghost_count[pos.x, pos.y]++] = ghost;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
-
-        result[partition.Length] = (int)id - startingPoint;
-
-        return result;
     }
+    static uint[][,] catalog;
+
+
+
+
+
 }
