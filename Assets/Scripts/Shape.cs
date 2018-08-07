@@ -90,6 +90,46 @@ public class Shape : ScriptableObject
     {
         public uint progress_record;
         public Ownership requirement;
+        public void OnPlayerMovement(Player player, bool moving_out, ref Dictionary<Player, uint> structureChanges)
+        {
+            OnPlayerMovement(player, moving_out);
+            if (Board.board.structures.ContainsKey(progress_record))
+            {
+                structureChanges.Add(Board.board.structures[progress_record].owner, progress_record);
+            }
+            else
+            {
+
+                foreach (Player p in Player.players)
+                {
+
+                }
+            }
+        }
+        public void OnPlayerMovement(Player player, bool moving_out)
+        {
+            if (requirement != Ownership.DOESNT_MATTER && ((requirement == Ownership.NONE) == (player == null)))
+            {
+                if (requirement == Ownership.NONE)
+                {
+                    foreach (Player p in Player.players)
+                    {
+                        if (moving_out)
+                            ++ghost_progress[p][progress_record];
+                        else
+                            --ghost_progress[p][progress_record];
+                    }
+                }
+                else
+                {
+                    if (requirement == Ownership.ENEMY) player = player.opponent;
+                    if (moving_out)
+                        --ghost_progress[player][progress_record];
+                    else
+                        ++ghost_progress[player][progress_record];
+                }
+            }
+        }
     }
     static Ghost[,][] ghosts;
     static Dictionary<Player, sbyte[]> ghost_progress;
@@ -129,6 +169,7 @@ public class Shape : ScriptableObject
             catalog[0][0, structure_count++] = (uint)ghost_progress_count;
         }
 
+
         sbyte[] ghost_progress = new sbyte[ghost_progress_count];
         Debug.Log("Ghost progress count: " + ghost_progress_count);
 
@@ -149,6 +190,8 @@ public class Shape : ScriptableObject
 
         ghosts = new Ghost[Board.board.size.x, Board.board.size.y][];
 
+
+        Debug.Log("Ghost count: " + ghost_count.Cast<int>().Sum());
         for (int x = 0; x < Board.board.size.x; x++)
             for (int y = 0; y < Board.board.size.y; y++)
             {
@@ -156,21 +199,18 @@ public class Shape : ScriptableObject
                 ghost_count[x, y] = 0;
             }
 
+
+
         uint progress_record = 0;
 
         foreach (Structure structure in Board.board.structurePrefabs)
-        {
             foreach (Shape shape in structure.shapes)
-            {
                 foreach (Composition composition in shape.compositions)
                 {
                     Vector2Int bounds = new Vector2Int(Board.board.size.x - composition.size.x, Board.board.size.y - composition.size.y);
                     for (int board_y = 0; board_y <= bounds.y; board_y++)
-                    {
                         for (int board_x = 0; board_x <= bounds.x; board_x++)
-                        {
                             for (int composition_x = 0; composition_x < composition.size.x; composition_x++)
-                            {
                                 for (int composition_y = 0; composition_y < composition.size.y; composition_y++)
                                 {
                                     Vector2Int pos = new Vector2Int(board_x + composition_x, board_y + composition_y);
@@ -181,11 +221,19 @@ public class Shape : ScriptableObject
 
                                     ghosts[pos.x, pos.y][ghost_count[pos.x, pos.y]++] = ghost;
                                 }
-                            }
-                        }
-                    }
                 }
-            }
+
+
+        Tile.OnTileOwnershipChange += OnTileOwnershipChange;
+    }
+    static void OnTileOwnershipChange(Tile tile, Player old_owner, Player new_owner)
+    {
+        Dictionary<Player, uint> potentialStructureChanges = new Dictionary<Player, uint>();
+
+        for (int i = 0; i < ghosts[tile.position.x, tile.position.y].Length; i++)
+        {
+            ghosts[tile.position.x, tile.position.y][i].OnPlayerMovement(old_owner, true);
+            ghosts[tile.position.x, tile.position.y][i].OnPlayerMovement(new_owner, false);
         }
     }
     static uint[][,] catalog;
