@@ -99,6 +99,12 @@ public class Shape : ScriptableObject
             }
             else
             {
+                Structure structure;
+                Shape shape;
+                Composition composition;
+                int position;
+
+                LookupInCatalog(progress_record, out structure, out shape, out composition, out position);
 
                 foreach (Player p in Player.players)
                 {
@@ -237,6 +243,50 @@ public class Shape : ScriptableObject
         }
     }
     static uint[][,] catalog;
+
+    static void LookupInCatalog(uint progress_record, out Structure structure, out Shape shape, out Composition composition, out int position)
+    {
+        structure = null;
+        shape = null;
+        composition = new Composition();
+        position = 0;
+
+        uint starting_position = 0;
+        for (int i = 0; i < 3; i++)
+        {
+            int jump_distance = (catalog[i].GetLength(0) - (int)starting_position + 1) / 2;
+            int index = (int)starting_position + jump_distance;
+
+            while (jump_distance != 0)
+            {
+                uint lower_value = index == 0 ? 0 : catalog[i][0, index - 1];
+                uint upper_value = catalog[i][0, index];
+
+                jump_distance *= (int)(Mathf.Sign(progress_record - lower_value) + Mathf.Sign(progress_record - upper_value)) / 2;
+                jump_distance /= 2;
+                index += jump_distance;
+            }
+
+
+            int local_index = index - (int)starting_position;
+
+            starting_position = catalog[i][1, local_index];
+
+            switch (i)
+            {
+                case 0:
+                    structure = Board.board.structurePrefabs[local_index];
+                    break;
+                case 1:
+                    shape = structure.shapes[local_index];
+                    break;
+                case 2:
+                    composition = shape.compositions[local_index];
+                    position = (int)(progress_record - starting_position);
+                    break;
+            }
+        }
+    }
 
 
 
