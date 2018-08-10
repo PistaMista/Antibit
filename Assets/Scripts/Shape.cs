@@ -90,28 +90,6 @@ public class Shape : ScriptableObject
     {
         public uint progress_record;
         public Ownership requirement;
-        public void OnPlayerMovement(Player player, bool moving_out, ref Dictionary<Player, uint> structureChanges)
-        {
-            OnPlayerMovement(player, moving_out);
-            if (Board.board.structures.ContainsKey(progress_record))
-            {
-                structureChanges.Add(Board.board.structures[progress_record].owner, progress_record);
-            }
-            else
-            {
-                Structure structure;
-                Shape shape;
-                Composition composition;
-                int position;
-
-                LookupInCatalog(progress_record, out structure, out shape, out composition, out position);
-
-                foreach (Player p in Player.players)
-                {
-
-                }
-            }
-        }
         public void OnPlayerMovement(Player player, bool moving_out)
         {
             if (requirement != Ownership.DOESNT_MATTER && ((requirement == Ownership.NONE) == (player == null)))
@@ -234,22 +212,73 @@ public class Shape : ScriptableObject
     }
     static void OnTileOwnershipChange(Tile tile, Player old_owner, Player new_owner)
     {
-        Dictionary<Player, uint> potentialStructureChanges = new Dictionary<Player, uint>();
 
         for (int i = 0; i < ghosts[tile.position.x, tile.position.y].Length; i++)
         {
-            ghosts[tile.position.x, tile.position.y][i].OnPlayerMovement(old_owner, true);
-            ghosts[tile.position.x, tile.position.y][i].OnPlayerMovement(new_owner, false);
+            Ghost ghost = ghosts[tile.position.x, tile.position.y][i];
+
+            ghost.OnPlayerMovement(old_owner, true);
+            ghost.OnPlayerMovement(new_owner, false);
+
+            ghosts[tile.position.x, tile.position.y][i] = ghost;
+
+        }
+
+        Dictionary<Player, GhostClassification> potential_structure_formations = new Dictionary<Player, uint>();
+
+        for (int i = 0; i < ghosts[tile.position.x, tile.position.y].Length; i++)
+        {
+            Ghost ghost = ghosts[tile.position.x, tile.position.y][i];
+            GhostClassification classification = LookupInCatalog(ghost.progress_record);
+
+            foreach (Player player in Player.players)
+            {
+                if (classification.IsCompleteFor(player))
+                {
+
+                }
+            }
         }
     }
+
+    struct GhostClassification
+    {
+        public uint progress_record;
+        public Structure structure;
+        public Shape shape;
+        public Composition composition;
+        public int position;
+        public bool IsCompleteFor(Player player)
+        {
+            return ghost_progress[player][progress_record] == shape.requiredProgress;
+        }
+        public void Apply(System.Action<Vector2Int, Vector2Int, Ghost, uint> action)
+        {
+            int position_x_limit = Board.board.size.x - composition.size.x + 1;
+
+            Vector2Int origin = new Vector2Int(position % position_x_limit, position / position_x_limit);
+
+            for (int x = 0; x < composition.size.x; x++)
+            {
+                for (int y = 0; y < composition.size.y; y++)
+                {
+                    Vector2Int local = new Vector2Int(x, y);
+                    Vector2Int global = local + origin;
+                    for (int i = 0; i < ghosts[global.x, global.y].Length; i++)
+                    {
+                        action(global, local, ghosts[global.x, global.y][i], progress_record);
+                    }
+                }
+            }
+        }
+    }
+
     static uint[][,] catalog;
 
-    static void LookupInCatalog(uint progress_record, out Structure structure, out Shape shape, out Composition composition, out int position)
+    static GhostClassification LookupInCatalog(uint progress_record)
     {
-        structure = null;
-        shape = null;
-        composition = new Composition();
-        position = 0;
+        GhostClassification result = new GhostClassification();
+        result.progress_record = progress_record;
 
         uint starting_position = 0;
         for (int i = 0; i < 3; i++)
@@ -275,21 +304,16 @@ public class Shape : ScriptableObject
             switch (i)
             {
                 case 0:
-                    structure = Board.board.structurePrefabs[local_index];
+                    result.structure = Board.board.structurePrefabs[local_index];
                     break;
                 case 1:
-                    shape = structure.shapes[local_index];
+                    result.shape = result.structure.shapes[local_index];
                     break;
                 case 2:
-                    composition = shape.compositions[local_index];
-                    position = (int)(progress_record - starting_position);
+                    result.composition = result.shape.compositions[local_index];
+                    result.position = (int)(progress_record - starting_position);
                     break;
             }
         }
     }
-
-
-
-
-
 }
