@@ -178,7 +178,7 @@ public class Shape : ScriptableObject
                 uint starting_position = 0;
                 for (int i = 0; i < 3; i++)
                 {
-                    int jump_distance = (catalog[i].GetLength(0) - (int)starting_position + 1) / 2;
+                    int jump_distance = (catalog[i].GetLength(0) - (int)starting_position) / 2;
                     int index = (int)starting_position + jump_distance;
 
                     while (jump_distance != 0)
@@ -186,9 +186,9 @@ public class Shape : ScriptableObject
                         uint lower_value = index == 0 ? 0 : catalog[i][0, index - 1];
                         uint upper_value = catalog[i][0, index];
 
-                        jump_distance *= (int)(Mathf.Sign(progress_record - lower_value) + Mathf.Sign(progress_record - upper_value)) / 2;
-                        jump_distance /= 2;
+                        jump_distance *= (int)(Mathf.Sign((long)progress_record - (long)lower_value) + Mathf.Sign((long)progress_record - (long)upper_value)) / 2;
                         index += jump_distance;
+                        jump_distance /= 2;
                     }
 
 
