@@ -89,10 +89,10 @@ public class Shape : ScriptableObject
     public static class Ghosts
     {
         static Dictionary<Player, sbyte[]> player_progress;
+        static Tile[,][] tiles;
 
         struct Tile
         {
-            public static Tile[,][] tiles;
             public Tile(uint progress_record, Ownership requirement)
             {
                 this.progress_record = progress_record;
@@ -163,10 +163,10 @@ public class Shape : ScriptableObject
                     classifications[formed_classification].FormFor(forming_player);
             }
         }
+        static uint[][,] catalog;
 
         struct Classification
         {
-            public static uint[][,] catalog;
             public Classification(uint progress_record)
             {
                 this.progress_record = progress_record;
@@ -290,9 +290,9 @@ public class Shape : ScriptableObject
             {
                 foreach (Tile tile in tiles)
                 {
-                    for (int i = 0; i < Ghosts.Tile.tiles[tile.game_tile.position.x, tile.game_tile.position.y].Length; i++)
+                    for (int i = 0; i < Ghosts.tiles[tile.game_tile.position.x, tile.game_tile.position.y].Length; i++)
                     {
-                        Ghosts.Tile ghost_tile = Ghosts.Tile.tiles[tile.game_tile.position.x, tile.game_tile.position.y][i];
+                        Ghosts.Tile ghost_tile = Ghosts.tiles[tile.game_tile.position.x, tile.game_tile.position.y][i];
 
                         if (ghost_tile.progress_record != progress_record)
                         {
@@ -300,7 +300,7 @@ public class Shape : ScriptableObject
                             ghost_tile.OnOwnershipMovement(tile.game_tile.Owner, !reverse);
                         }
 
-                        Ghosts.Tile.tiles[tile.game_tile.position.x, tile.game_tile.position.y][i] = ghost_tile;
+                        Ghosts.tiles[tile.game_tile.position.x, tile.game_tile.position.y][i] = ghost_tile;
                     }
                 }
             }
@@ -352,32 +352,32 @@ public class Shape : ScriptableObject
             int shape_count = 0;
             int variation_count = 0;
 
-            Classification.catalog = new uint[3][,];
-            Classification.catalog[0] = new uint[2, Board.board.structurePrefabs.Length];
-            Classification.catalog[1] = new uint[2, Board.board.structurePrefabs.Sum(x => x.shapes.Length)];
-            Classification.catalog[2] = new uint[2, Board.board.structurePrefabs.Sum(x => x.shapes.Sum(y => y.compositions.Length))];
+            catalog = new uint[3][,];
+            catalog[0] = new uint[2, Board.board.structurePrefabs.Length];
+            catalog[1] = new uint[2, Board.board.structurePrefabs.Sum(x => x.shapes.Length)];
+            catalog[2] = new uint[2, Board.board.structurePrefabs.Sum(x => x.shapes.Sum(y => y.compositions.Length))];
 
             foreach (Structure structure in Board.board.structurePrefabs)
             {
-                Classification.catalog[0][1, structure_count] = (uint)shape_count;
+                catalog[0][1, structure_count] = (uint)shape_count;
 
                 foreach (Shape shape in structure.shapes)
                 {
-                    Classification.catalog[1][1, shape_count] = (uint)variation_count;
+                    catalog[1][1, shape_count] = (uint)variation_count;
 
                     foreach (Composition composition in shape.compositions)
                     {
-                        Classification.catalog[2][1, variation_count] = (uint)ghost_progress_count;
+                        catalog[2][1, variation_count] = (uint)ghost_progress_count;
 
                         ghost_progress_count += Mathf.Clamp((Board.board.size.x - composition.size.x + 1) * (Board.board.size.y - composition.size.y + 1), 0, int.MaxValue);
 
-                        Classification.catalog[2][0, variation_count++] = (uint)ghost_progress_count;
+                        catalog[2][0, variation_count++] = (uint)ghost_progress_count;
                     }
 
-                    Classification.catalog[1][0, shape_count++] = (uint)ghost_progress_count;
+                    catalog[1][0, shape_count++] = (uint)ghost_progress_count;
                 }
 
-                Classification.catalog[0][0, structure_count++] = (uint)ghost_progress_count;
+                catalog[0][0, structure_count++] = (uint)ghost_progress_count;
             }
 
 
@@ -399,14 +399,14 @@ public class Shape : ScriptableObject
                             for (int y = 0; y < Board.board.size.y; y++)
                                 ghost_count[x, y] += (Mathf.Clamp(tile_edge_distances[x, y].x, 0, composition.size.x) * Mathf.Clamp(tile_edge_distances[x, y].y, 0, composition.size.y));
 
-            Tile.tiles = new Tile[Board.board.size.x, Board.board.size.y][];
+            tiles = new Tile[Board.board.size.x, Board.board.size.y][];
 
 
             Debug.Log("Ghost count: " + ghost_count.Cast<int>().Sum());
             for (int x = 0; x < Board.board.size.x; x++)
                 for (int y = 0; y < Board.board.size.y; y++)
                 {
-                    Tile.tiles[x, y] = new Tile[ghost_count[x, y]];
+                    tiles[x, y] = new Tile[ghost_count[x, y]];
                     ghost_count[x, y] = 0;
                 }
 
@@ -415,19 +415,29 @@ public class Shape : ScriptableObject
             uint progress_record = 0;
 
             foreach (Structure structure in Board.board.structurePrefabs)
+            {
                 foreach (Shape shape in structure.shapes)
+                {
                     foreach (Composition composition in shape.compositions)
                     {
                         Vector2Int bounds = new Vector2Int(Board.board.size.x - composition.size.x, Board.board.size.y - composition.size.y);
                         for (int board_y = 0; board_y <= bounds.y; board_y++)
+                        {
                             for (int board_x = 0; board_x <= bounds.x; board_x++)
+                            {
                                 for (int composition_x = 0; composition_x < composition.size.x; composition_x++)
+                                {
                                     for (int composition_y = 0; composition_y < composition.size.y; composition_y++)
                                     {
                                         Vector2Int pos = new Vector2Int(board_x + composition_x, board_y + composition_y);
-                                        Tile.tiles[pos.x, pos.y][ghost_count[pos.x, pos.y]++] = new Tile(progress_record++, composition.ownerships[composition_x, composition_y]);
+                                        tiles[pos.x, pos.y][ghost_count[pos.x, pos.y]++] = new Tile(progress_record++, composition.ownerships[composition_x, composition_y]);
                                     }
+                                }
+                            }
+                        }
                     }
+                }
+            }
 
 
             Gameplay.Tile.OnTileOwnershipChange += Tile.OnAnyOwnershipChange;
