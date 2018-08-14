@@ -49,7 +49,7 @@ public class Shape : ScriptableObject
         }
         public readonly Vector2Int size;
         public Ownership[,] ownerships;
-        byte[,] markers;
+        public byte[,] markers;
     }
     private Composition[] compositions;
     private void Compose()
@@ -86,7 +86,7 @@ public class Shape : ScriptableObject
                 shape.Compose();
     }
 
-    static class Ghosts
+    public static class Ghosts
     {
         static Dictionary<Player, sbyte[]> player_progress;
 
@@ -126,7 +126,41 @@ public class Shape : ScriptableObject
             }
             public static void OnAnyOwnershipChange(Gameplay.Tile tile, Player old_owner, Player new_owner)
             {
+                Classification[] classifications = new Classification[tiles[tile.position.x, tile.position.y].Length];
 
+                for (int i = 0; i < classifications.Length; i++)
+                    classifications[i] = new Classification(tiles[tile.position.x, tile.position.y][i].progress_record);
+
+                int? deformed_classification = null;
+                for (int i = 0; i < classifications.Length; i++)
+                {
+                    tiles[tile.position.x, tile.position.y][i].OnOwnershipMovement(old_owner, true);
+                    tiles[tile.position.x, tile.position.y][i].OnOwnershipMovement(new_owner, false);
+
+                    if (classifications[i].deforming) deformed_classification = i;
+                }
+
+                if (deformed_classification != null)
+                    classifications[(int)deformed_classification].Deform();
+
+
+                int formed_classification = 0;
+                Player forming_player = null;
+                for (int i = 0; i < classifications.Length; i++)
+                {
+                    Player candidate = classifications[i].forming_player;
+                    if (candidate != null)
+                        if (forming_player != null)
+                            return;
+                        else
+                        {
+                            forming_player = candidate;
+                            formed_classification = i;
+                        }
+                }
+
+                if (forming_player != null)
+                    classifications[formed_classification].FormFor(forming_player);
             }
         }
 
@@ -182,36 +216,130 @@ public class Shape : ScriptableObject
             public readonly Shape shape;
             public readonly Composition composition;
             public readonly int position;
-            public bool IsCompleteFor(Player player)
+            public bool deforming
+            {
+                get
+                {
+                    return Board.board.structures.ContainsKey(progress_record) && !IsCompleteFor(Board.board.structures[progress_record].owner);
+                }
+            }
+
+            public Player forming_player
+            {
+                get
+                {
+                    if (!Board.board.structures.ContainsKey(progress_record))
+                    {
+                        foreach (Player player in Player.players)
+                        {
+                            if (IsCompleteFor(player)) return player;
+                        }
+                    }
+
+                    return null;
+                }
+            }
+            bool IsCompleteFor(Player player)
             {
                 return player_progress[player][progress_record] == shape.requiredProgress;
             }
 
-            public struct Tile
+            public void FormFor(Player player)
             {
-                public Tile(Vector2Int position, uint index)
+                IsolateFor(player);
+
+                Structure new_structure = Instantiate(structure.gameObject).GetComponent<Structure>();
+                new_structure.transform.SetParent(Board.board.transform);
+
+                bool[,] formation = new bool[composition.size.x, composition.size.y];
+                int[,] markers = new int[composition.size.x, composition.size.y];
+
+                Gameplay.Tile origin = this.origin;
+
+                for (int x = 0; x < composition.size.x; x++)
                 {
-                    game_tile = Board.board[position.x, position.y];
-                    ghost_tile = Ghosts.Tile.tiles[position.x, position.y][index];
+                    for (int y = 0; y < composition.size.y; y++)
+                    {
+                        formation[x, y] = composition.ownerships[x, y] != Ownership.DOESNT_MATTER;
+                        markers[x, y] = composition.markers[x, y];
+                    }
                 }
-                public readonly Gameplay.Tile game_tile;
-                public readonly Ghosts.Tile ghost_tile;
+
+                new_structure.Form(origin, formation, markers, shape.markerSequence.Max());
+
+                Board.board.structures.Add(progress_record, new_structure);
+                Player.player_on_turn.structures.Add(new_structure);
+
+                new_structure.owner = Player.player_on_turn;
+
             }
 
-            public IEnumerator<Tile> tiles
+            public void Deform()
+            {
+                Structure deformed_structure = Board.board.structures[progress_record];
+                IsolateFor(deformed_structure.owner, reverse: true);
+
+                deformed_structure.owner.structures.Remove(deformed_structure);
+                Board.board.structures.Remove(progress_record);
+                deformed_structure.Deform();
+
+                Destroy(deformed_structure.gameObject);
+            }
+
+            void IsolateFor(Player player, bool reverse = false)
+            {
+                foreach (Tile tile in tiles)
+                {
+                    for (int i = 0; i < Ghosts.Tile.tiles[tile.game_tile.position.x, tile.game_tile.position.y].Length; i++)
+                    {
+                        Ghosts.Tile ghost_tile = Ghosts.Tile.tiles[tile.game_tile.position.x, tile.game_tile.position.y][i];
+
+                        if (ghost_tile.progress_record != progress_record)
+                        {
+                            Player tile_owner = tile.requirement == Ownership.FRIENDLY ? player : (tile.requirement == Ownership.ENEMY ? player.opponent : null);
+                            ghost_tile.OnOwnershipMovement(tile.game_tile.Owner, !reverse);
+                        }
+
+                        Ghosts.Tile.tiles[tile.game_tile.position.x, tile.game_tile.position.y][i] = ghost_tile;
+                    }
+                }
+            }
+
+            public struct Tile
+            {
+                public Tile(Vector2Int position, Ownership requirement, byte marker)
+                {
+                    game_tile = Board.board[position.x, position.y];
+                    this.requirement = requirement;
+                    this.marker = marker;
+                }
+                public readonly Gameplay.Tile game_tile;
+                public readonly Ownership requirement;
+                public readonly byte marker;
+            }
+
+            public IEnumerable<Tile> tiles
             {
                 get
                 {
-                    int position_x_limit = Board.board.size.x - composition.size.x + 1;
-                    Vector2Int origin = new Vector2Int(position % position_x_limit, position / position_x_limit);
+                    Vector2Int origin = this.origin.position;
                     for (int x = 0; x < composition.size.x; x++)
                     {
                         for (int y = 0; y < composition.size.y; y++)
                         {
                             Vector2Int global = origin + new Vector2Int(x, y);
-
+                            yield return new Tile(global, composition.ownerships[x, y], composition.markers[x, y]);
                         }
                     }
+                }
+            }
+
+            public Gameplay.Tile origin
+            {
+                get
+                {
+                    int position_x_limit = Board.board.size.x - composition.size.x + 1;
+                    return Board.board[position_x_limit % position, position_x_limit / position];
                 }
             }
         }
@@ -305,35 +433,4 @@ public class Shape : ScriptableObject
             Gameplay.Tile.OnTileOwnershipChange += Tile.OnAnyOwnershipChange;
         }
     }
-
-    // static void OnTileOwnershipChange(Tile tile, Player old_owner, Player new_owner)
-    // {
-
-    //     for (int i = 0; i < ghosts[tile.position.x, tile.position.y].Length; i++)
-    //     {
-    //         Ghost ghost = ghosts[tile.position.x, tile.position.y][i];
-
-    //         ghost.OnPlayerMovement(old_owner, true);
-    //         ghost.OnPlayerMovement(new_owner, false);
-
-    //         ghosts[tile.position.x, tile.position.y][i] = ghost;
-
-    //     }
-
-    //     Dictionary<Player, GhostClassification> potential_structure_formations = new Dictionary<Player, uint>();
-
-    //     for (int i = 0; i < ghosts[tile.position.x, tile.position.y].Length; i++)
-    //     {
-    //         Ghost ghost = ghosts[tile.position.x, tile.position.y][i];
-    //         GhostClassification classification = LookupInCatalog(ghost.progress_record);
-
-    //         foreach (Player player in Player.players)
-    //         {
-    //             if (classification.IsCompleteFor(player))
-    //             {
-
-    //             }
-    //         }
-    //     }
-    // }
 }

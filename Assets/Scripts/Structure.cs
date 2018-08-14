@@ -15,11 +15,11 @@ namespace Gameplay
 
         public Tile position;
 
-        public void Form(Tile tile, bool[,] formation, int[,] markers, int marker_group_count)
+        public void Form(Tile tile, bool[,] formation, int[,] markers, int highest_marker)
         {
             tiles = new Tile[formation.GetLength(0), formation.GetLength(1)];
-            List<Tile>[] markedTiles = new List<Tile>[marker_group_count];
-            for (int i = 0; i < marker_group_count; i++)
+            List<Tile>[] markedTiles = new List<Tile>[highest_marker];
+            for (int i = 0; i < highest_marker; i++)
             {
                 markedTiles[i] = new List<Tile>();
             }
