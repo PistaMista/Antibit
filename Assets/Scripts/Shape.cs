@@ -179,16 +179,15 @@ public class Shape : ScriptableObject
                 for (int i = 0; i < 3; i++)
                 {
                     uint[,] entry = catalog[i];
-                    int jump_distance = (entry.GetLength(1) - (int)starting_position) / 2;
-                    int index = (int)starting_position + jump_distance;
+                    int jump_distance = (entry.GetLength(1) - (int)starting_position + 1) / 2;
+                    int index = (int)starting_position + jump_distance - 1;
 
                     while (jump_distance != 0)
                     {
                         uint lower_value = index == 0 ? 0 : entry[0, index - 1];
                         uint upper_value = entry[0, index];
 
-                        jump_distance *= (int)(Mathf.Sign((long)progress_record - (long)lower_value) + Mathf.Sign((long)progress_record - (long)upper_value)) / 2;
-                        index += jump_distance;
+                        index += jump_distance * ((int)(Mathf.Sign((long)progress_record - (long)lower_value) + Mathf.Sign((long)progress_record - (long)upper_value)) / 2);
                         jump_distance /= 2;
                     }
 
@@ -430,9 +429,11 @@ public class Shape : ScriptableObject
                                     for (int composition_y = 0; composition_y < composition.size.y; composition_y++)
                                     {
                                         Vector2Int pos = new Vector2Int(board_x + composition_x, board_y + composition_y);
-                                        tiles[pos.x, pos.y][ghost_count[pos.x, pos.y]++] = new Tile(progress_record++, composition.ownerships[composition_x, composition_y]);
+                                        tiles[pos.x, pos.y][ghost_count[pos.x, pos.y]++] = new Tile(progress_record, composition.ownerships[composition_x, composition_y]);
                                     }
                                 }
+
+                                progress_record++;
                             }
                         }
                     }
