@@ -178,13 +178,14 @@ public class Shape : ScriptableObject
                 uint starting_position = 0;
                 for (int i = 0; i < 3; i++)
                 {
-                    int jump_distance = (catalog[i].GetLength(0) - (int)starting_position) / 2;
+                    uint[,] entry = catalog[i];
+                    int jump_distance = (entry.GetLength(1) - (int)starting_position) / 2;
                     int index = (int)starting_position + jump_distance;
 
                     while (jump_distance != 0)
                     {
-                        uint lower_value = index == 0 ? 0 : catalog[i][0, index - 1];
-                        uint upper_value = catalog[i][0, index];
+                        uint lower_value = index == 0 ? 0 : entry[0, index - 1];
+                        uint upper_value = entry[0, index];
 
                         jump_distance *= (int)(Mathf.Sign((long)progress_record - (long)lower_value) + Mathf.Sign((long)progress_record - (long)upper_value)) / 2;
                         index += jump_distance;
@@ -193,9 +194,6 @@ public class Shape : ScriptableObject
 
 
                     int local_index = index - (int)starting_position;
-
-                    starting_position = catalog[i][1, local_index];
-
                     switch (i)
                     {
                         case 0:
@@ -209,6 +207,8 @@ public class Shape : ScriptableObject
                             position = (int)(progress_record - starting_position);
                             break;
                     }
+
+                    starting_position = entry[1, index];
                 }
             }
             public readonly uint progress_record;
