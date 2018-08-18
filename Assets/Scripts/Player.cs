@@ -8,7 +8,6 @@ namespace Gameplay
     public class Player : ScriptableObject
     {
         public Player opponent;
-        public Tile origin;
         public bool ai = false;
         public bool red = false;
 

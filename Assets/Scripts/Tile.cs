@@ -12,7 +12,6 @@ namespace Gameplay
         public Vector2Int position;
         public Tile[] neighbours;
         private RawImage image;
-        private Text text;
 
         private Player owner;
         public Player Owner
@@ -64,14 +63,13 @@ namespace Gameplay
         void Awake()
         {
             image = GetComponent<RawImage>();
-            text = GetComponentInChildren<Text>();
         }
 
         public void RecalculateSourceAndDestinationProvision()
         {
             if (Owner != null)
             {
-                Owner.sources.Set(this, this != Owner.origin);
+                Owner.sources.Set(this, true);
                 Owner.opponent.sources.Set(this, false);
 
                 foreach (Player player in Player.players) player.destinations.Set(this, false);
@@ -99,10 +97,11 @@ namespace Gameplay
 
         public static bool TraceOrigin(Tile root, List<Tile> explored)
         {
-            if (root == root.Owner.origin) return true;
+
+            if (root.structure is Structures.Base) return true;
             explored.Add(root);
 
-            IEnumerable<Tile> next = root.neighbours.Where(x => x != null && x.Owner == root.Owner && !explored.Contains(x)).OrderByDescending(x => (x.position - x.Owner.origin.position).magnitude).Reverse();
+            IEnumerable<Tile> next = root.neighbours.Where(x => x != null && x.Owner == root.Owner && !explored.Contains(x)).OrderByDescending(x => (x.position - explored.First().position).sqrMagnitude);
             foreach (Tile tile in next)
             {
                 if (TraceOrigin(tile, explored)) return true;

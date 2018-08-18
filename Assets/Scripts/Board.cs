@@ -102,8 +102,6 @@ namespace Gameplay
                 player_rectangle_end.y = player_rectangle_start.y + board.startingTileRectangleSize.y - 1;
                 player_origin.y = player_rectangle_start.y + rect_y_half;
 
-                player.origin = board[player_origin.x, player_origin.y];
-
                 for (int x = player_rectangle_start.x; x <= player_rectangle_end.x; x++)
                 {
                     for (int y = player_rectangle_start.y; y <= player_rectangle_end.y; y++)
