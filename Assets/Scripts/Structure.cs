@@ -10,7 +10,7 @@ namespace Gameplay
     {
         public Shape[] shapes;
         public Player owner;
-        Tile[,] tiles;
+        protected Tile[,] tiles;
 
 
         public Tile position;
