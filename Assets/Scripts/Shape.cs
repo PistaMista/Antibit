@@ -71,7 +71,7 @@ public class Shape : ScriptableObject
                 compositions[0].SetPair(x, y, ownership, marker);
                 compositions[1].SetPair(footprint.y - 1 - y, x, ownership, marker);
                 compositions[2].SetPair(footprint.x - 1 - x, footprint.y - 1 - y, ownership, marker);
-                compositions[3].SetPair(y, footprint.x - 1 - 1, ownership, marker);
+                compositions[3].SetPair(y, footprint.x - 1 - x, ownership, marker);
             }
         }
 
@@ -109,9 +109,9 @@ public class Shape : ScriptableObject
                         foreach (Player p in Player.players)
                         {
                             if (moving_out)
-                                ++player_progress[p][progress_record];
-                            else
                                 --player_progress[p][progress_record];
+                            else
+                                ++player_progress[p][progress_record];
                         }
                     }
                     else
@@ -173,26 +173,43 @@ public class Shape : ScriptableObject
                 structure = null;
                 shape = null;
                 composition = new Composition();
-                position = 0;
+                position = Vector2Int.zero;
 
                 uint starting_position = 0;
                 for (int i = 0; i < 3; i++)
                 {
                     uint[,] entry = catalog[i];
-                    int jump_distance = (entry.GetLength(1) - (int)starting_position + 1) / 2;
-                    int index = (int)starting_position + jump_distance - 1;
 
-                    while (jump_distance != 0)
+                    uint left_bound = starting_position;
+                    uint right_bound = (uint)(entry.GetLength(1) - 1);
+
+                    int index = 0;
+                    while (left_bound <= right_bound)
                     {
-                        uint lower_value = index == 0 ? 0 : entry[0, index - 1];
-                        uint upper_value = entry[0, index];
+                        uint median = (left_bound + right_bound) / 2;
 
-                        index += jump_distance * ((int)(Mathf.Sign((long)progress_record - (long)lower_value) + Mathf.Sign((long)progress_record - (long)upper_value)) / 2);
-                        jump_distance /= 2;
+                        uint lower_value = median == 0 ? 0 : entry[0, median - 1];
+                        uint upper_value = entry[0, median];
+
+                        if (progress_record >= lower_value && progress_record < upper_value)
+                        {
+                            index = (int)median;
+                            break;
+                        }
+                        else if (progress_record > lower_value)
+                        {
+                            left_bound = median + 1;
+                        }
+                        else
+                        {
+                            right_bound = median - 1;
+                        }
                     }
 
 
                     int local_index = index - (int)starting_position;
+                    starting_position = entry[1, index];
+
                     switch (i)
                     {
                         case 0:
@@ -203,18 +220,19 @@ public class Shape : ScriptableObject
                             break;
                         case 2:
                             composition = shape.compositions[local_index];
-                            position = (int)(progress_record - starting_position);
+
+                            int position_index = (int)(progress_record - starting_position);
+                            int position_x_limit = Board.board.size.x - composition.size.x + 1;
+                            position = new Vector2Int(position_index % position_x_limit, position_index / position_x_limit);
                             break;
                     }
-
-                    starting_position = entry[1, index];
                 }
             }
             public readonly uint progress_record;
             public readonly Structure structure;
             public readonly Shape shape;
             public readonly Composition composition;
-            public readonly int position;
+            public readonly Vector2Int position;
             public bool deforming
             {
                 get
@@ -246,14 +264,13 @@ public class Shape : ScriptableObject
             public void FormFor(Player player)
             {
                 IsolateFor(player);
+                Debug.Log("Formed " + structure.name + " at " + position);
 
                 Structure new_structure = Instantiate(structure.gameObject).GetComponent<Structure>();
                 new_structure.transform.SetParent(Board.board.transform);
 
                 bool[,] formation = new bool[composition.size.x, composition.size.y];
                 int[,] markers = new int[composition.size.x, composition.size.y];
-
-                Gameplay.Tile origin = this.origin;
 
                 for (int x = 0; x < composition.size.x; x++)
                 {
@@ -264,17 +281,17 @@ public class Shape : ScriptableObject
                     }
                 }
 
-                new_structure.Form(origin, formation, markers, shape.markerSequence.Max());
+                new_structure.Form(Board.board[position.x, position.y], formation, markers, shape.markerSequence.Max());
 
                 Board.board.structures.Add(progress_record, new_structure);
                 Player.player_on_turn.structures.Add(new_structure);
 
                 new_structure.owner = Player.player_on_turn;
-
             }
 
             public void Deform()
             {
+                Debug.Log("Deformed " + structure.name + " at " + position);
                 Structure deformed_structure = Board.board.structures[progress_record];
                 IsolateFor(deformed_structure.owner, reverse: true);
 
@@ -287,58 +304,18 @@ public class Shape : ScriptableObject
 
             void IsolateFor(Player player, bool reverse = false)
             {
-                foreach (Tile tile in tiles)
+                for (int x = 0; x < composition.size.x; x++)
                 {
-                    for (int i = 0; i < Ghosts.tiles[tile.game_tile.position.x, tile.game_tile.position.y].Length; i++)
+                    for (int y = 0; y < composition.size.y; y++)
                     {
-                        Ghosts.Tile ghost_tile = Ghosts.tiles[tile.game_tile.position.x, tile.game_tile.position.y][i];
+                        Vector2Int global = position + new Vector2Int(x, y);
+                        Ownership structure_composition_requirement = composition.ownerships[x, y];
+                        Player structure_tile_owner = structure_composition_requirement == Ownership.FRIENDLY ? player : (structure_composition_requirement == Ownership.ENEMY ? player.opponent : null);
 
-                        if (ghost_tile.progress_record != progress_record)
-                        {
-                            Player tile_owner = tile.requirement == Ownership.FRIENDLY ? player : (tile.requirement == Ownership.ENEMY ? player.opponent : null);
-                            ghost_tile.OnOwnershipMovement(tile.game_tile.Owner, !reverse);
-                        }
-
-                        Ghosts.tiles[tile.game_tile.position.x, tile.game_tile.position.y][i] = ghost_tile;
+                        for (int i = 0; i < tiles[global.x, global.y].Length; i++)
+                            if (tiles[global.x, global.y][i].progress_record != progress_record)
+                                tiles[global.x, global.y][i].OnOwnershipMovement(structure_tile_owner, !reverse);
                     }
-                }
-            }
-
-            public struct Tile
-            {
-                public Tile(Vector2Int position, Ownership requirement, byte marker)
-                {
-                    game_tile = Board.board[position.x, position.y];
-                    this.requirement = requirement;
-                    this.marker = marker;
-                }
-                public readonly Gameplay.Tile game_tile;
-                public readonly Ownership requirement;
-                public readonly byte marker;
-            }
-
-            public IEnumerable<Tile> tiles
-            {
-                get
-                {
-                    Vector2Int origin = this.origin.position;
-                    for (int x = 0; x < composition.size.x; x++)
-                    {
-                        for (int y = 0; y < composition.size.y; y++)
-                        {
-                            Vector2Int global = origin + new Vector2Int(x, y);
-                            yield return new Tile(global, composition.ownerships[x, y], composition.markers[x, y]);
-                        }
-                    }
-                }
-            }
-
-            public Gameplay.Tile origin
-            {
-                get
-                {
-                    int position_x_limit = Board.board.size.x - composition.size.x + 1;
-                    return Board.board[position_x_limit % position, position_x_limit / position];
                 }
             }
         }
@@ -380,7 +357,12 @@ public class Shape : ScriptableObject
             }
 
 
-            sbyte[] ghost_progress = new sbyte[ghost_progress_count];
+            player_progress = new Dictionary<Player, sbyte[]>();
+            foreach (Player player in Player.players)
+            {
+                player_progress.Add(player, new sbyte[ghost_progress_count]);
+            }
+
             Debug.Log("Ghost progress count: " + ghost_progress_count);
 
             //Add the ghosts to the tiles
@@ -394,14 +376,18 @@ public class Shape : ScriptableObject
             foreach (Structure structure in Board.board.structurePrefabs)
                 foreach (Shape shape in structure.shapes)
                     foreach (Composition composition in shape.compositions)
+                    {
+                        int xsize = Mathf.Clamp(composition.size.x, 0, Board.board.center.x);
+                        int ysize = Mathf.Clamp(composition.size.y, 0, Board.board.center.y);
                         for (int x = 0; x < Board.board.size.x; x++)
                             for (int y = 0; y < Board.board.size.y; y++)
-                                ghost_count[x, y] += (Mathf.Clamp(tile_edge_distances[x, y].x, 0, composition.size.x) * Mathf.Clamp(tile_edge_distances[x, y].y, 0, composition.size.y));
-
+                                ghost_count[x, y] += (Mathf.Clamp(tile_edge_distances[x, y].x, 0, xsize) * Mathf.Clamp(tile_edge_distances[x, y].y, 0, ysize));
+                    }
             tiles = new Tile[Board.board.size.x, Board.board.size.y][];
 
 
             Debug.Log("Ghost count: " + ghost_count.Cast<int>().Sum());
+
             for (int x = 0; x < Board.board.size.x; x++)
                 for (int y = 0; y < Board.board.size.y; y++)
                 {
@@ -440,7 +426,7 @@ public class Shape : ScriptableObject
                 }
             }
 
-
+            Gameplay.Tile.OnTileOwnershipChange -= Tile.OnAnyOwnershipChange;
             Gameplay.Tile.OnTileOwnershipChange += Tile.OnAnyOwnershipChange;
         }
     }

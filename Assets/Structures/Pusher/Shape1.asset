@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Name: Shape1
   m_EditorClassIdentifier: 
   footprint: {x: 5, y: 4}
-  ownershipSequence: 0000030000020003000200000300000200030002
+  ownershipSequence: 0000030000020003000202000300020200030002
   markerSequence: 0000010000000001000000000100000000020000
