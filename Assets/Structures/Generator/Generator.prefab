@@ -52,6 +52,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shapes:
-  - {fileID: 11400000, guid: 04ba1317e52b9e34aaa3f3ce73e43b6e, type: 2}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   owner: {fileID: 0}
   position: {fileID: 0}
+  generating_tiles: []

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using Gameplay;
+using System;
 
+[Serializable]
 [CreateAssetMenu(fileName = "Shape", menuName = "Shape", order = 2)]
 public class Shape : ScriptableObject
 {
@@ -266,7 +268,7 @@ public class Shape : ScriptableObject
                 IsolateFor(player);
                 Debug.Log("Formed " + structure.name + " at " + position);
 
-                Structure new_structure = Instantiate(structure.gameObject).GetComponent<Structure>();
+                Structure new_structure = GameObject.Instantiate(structure.gameObject).GetComponent<Structure>();
                 new_structure.transform.SetParent(Board.board.transform);
 
                 bool[,] formation = new bool[composition.size.x, composition.size.y];
@@ -299,7 +301,7 @@ public class Shape : ScriptableObject
                 Board.board.structures.Remove(progress_record);
                 deformed_structure.Deform();
 
-                Destroy(deformed_structure.gameObject);
+                GameObject.Destroy(deformed_structure.gameObject);
             }
 
             void IsolateFor(Player player, bool reverse = false)
