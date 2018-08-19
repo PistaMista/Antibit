@@ -17,17 +17,14 @@ public class Shape : ScriptableObject
         DOESNT_MATTER
     }
 
-
-    private sbyte requiredProgress;
-
-    public Vector2Int footprint;
-    public Ownership[] ownershipSequence;
-    public byte[] markerSequence;
-    private struct Composition : IEqualityComparer<Composition>
+    public sbyte requiredProgress;
+    public Composition[] compositions;
+    public struct Composition : IEqualityComparer<Composition>
     {
         public bool Equals(Composition a, Composition b)
         {
-            return a.ownerships.GetLength(0) == b.ownerships.GetLength(0) &&
+            return a.ownerships != null && a.markers != null && b.ownerships != null && b.markers != null &&
+            a.ownerships.GetLength(0) == b.ownerships.GetLength(0) &&
             a.ownerships.GetLength(1) == b.ownerships.GetLength(1) &&
             a.ownerships.Cast<Ownership>().SequenceEqual(b.ownerships.Cast<Ownership>()) &&
             a.markers.GetLength(0) == b.markers.GetLength(0) &&
@@ -49,43 +46,36 @@ public class Shape : ScriptableObject
             ownerships[x, y] = ownership;
             markers[x, y] = marker;
         }
-        public readonly Vector2Int size;
+        public Vector2Int size;
         public Ownership[,] ownerships;
         public byte[,] markers;
     }
-    private Composition[] compositions;
-    private void Compose()
+    public void Compose()
     {
         compositions = new Composition[4];
         for (int i = 0; i < 4; i++)
         {
-            compositions[i] = i % 2 == 0 ? new Composition(footprint.x, footprint.y) : new Composition(footprint.y, footprint.x);
+            compositions[i] = i % 2 == 0 ? new Composition(baseComposition.size.x, baseComposition.size.y) : new Composition(baseComposition.size.y, baseComposition.size.x);
         }
 
-        int written_position = 0;
-        for (int y = 0; y < footprint.y; y++)
-        {
-            for (int x = 0; x < footprint.x; x++)
-            {
-                Ownership ownership = ownershipSequence[written_position];
-                byte marker = markerSequence[written_position++];
+        compositions[0] = baseComposition;
 
-                compositions[0].SetPair(x, y, ownership, marker);
-                compositions[1].SetPair(footprint.y - 1 - y, x, ownership, marker);
-                compositions[2].SetPair(footprint.x - 1 - x, footprint.y - 1 - y, ownership, marker);
-                compositions[3].SetPair(y, footprint.x - 1 - x, ownership, marker);
+        for (int y = 0; y < baseComposition.size.y; y++)
+        {
+            for (int x = 0; x < baseComposition.size.x; x++)
+            {
+                Ownership ownership = baseComposition.ownerships[x, y];
+                byte marker = baseComposition.markers[x, y];
+
+                compositions[1].SetPair(baseComposition.size.y - 1 - y, x, ownership, marker);
+                compositions[2].SetPair(baseComposition.size.x - 1 - x, baseComposition.size.y - 1 - y, ownership, marker);
+                compositions[3].SetPair(y, baseComposition.size.x - 1 - x, ownership, marker);
             }
         }
 
         compositions = compositions.Distinct().ToArray();
 
-        requiredProgress = (sbyte)ownershipSequence.Count(x => x == Ownership.FRIENDLY || x == Ownership.ENEMY);
-    }
-    public static void ComposeAll()
-    {
-        foreach (Structure structure in Board.board.structurePrefabs)
-            foreach (Shape shape in structure.shapes)
-                shape.Compose();
+        requiredProgress = (sbyte)baseComposition.ownerships.Cast<Ownership>().Count(x => x == Ownership.FRIENDLY || x == Ownership.ENEMY);
     }
 
     public static class Ghosts
@@ -283,7 +273,7 @@ public class Shape : ScriptableObject
                     }
                 }
 
-                new_structure.Form(Board.board[position.x, position.y], formation, markers, shape.markerSequence.Max());
+                new_structure.Form(Board.board[position.x, position.y], formation, markers, composition.markers.Cast<byte>().Max());
 
                 Board.board.structures.Add(progress_record, new_structure);
                 Player.player_on_turn.structures.Add(new_structure);
