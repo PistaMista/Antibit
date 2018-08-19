@@ -11,6 +11,7 @@ namespace Gameplay
         void Start()
         {
             board = this;
+            Shape.ComposeAll();
         }
 
         public Tile tilePrefab;

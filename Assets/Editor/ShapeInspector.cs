@@ -2,44 +2,65 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using System.Linq;
 
 [CustomEditor(typeof(Shape))]
 public class ShapeInspector : Editor
 {
+    Vector2Int footprint;
+    Shape.Ownership[] ownerships;
+    byte[] markers;
+    void Awake()
+    {
+        footprint = serializedObject.FindProperty("footprint").vector2IntValue;
+
+        SerializedProperty ownershipProp = serializedObject.FindProperty("ownershipSequence");
+        SerializedProperty markerProp = serializedObject.FindProperty("markerSequence");
+
+        ownerships = new Shape.Ownership[ownershipProp.arraySize];
+        markers = new byte[markerProp.arraySize];
+
+        for (int i = 0; i < ownershipProp.arraySize; i++)
+        {
+            ownerships[i] = (Shape.Ownership)ownershipProp.GetArrayElementAtIndex(i).enumValueIndex;
+            markers[i] = (byte)markerProp.GetArrayElementAtIndex(i).intValue;
+        }
+    }
 
     public override void OnInspectorGUI()
     {
-        Shape inspected = target as Shape;
-        GUILayout.BeginHorizontal();
-        Vector2Int dimensions_input = EditorGUILayout.Vector2IntField("Dimensions: ", inspected.baseComposition.size);
-        if (inspected.baseComposition.size != dimensions_input)
+        Vector2Int dimensions_input = EditorGUILayout.Vector2IntField("Dimensions: ", footprint);
+        if (dimensions_input != footprint)
         {
-            inspected.baseComposition = new Shape.Composition(dimensions_input.x, dimensions_input.y);
+            footprint = dimensions_input;
+            serializedObject.FindProperty("footprint").vector2IntValue = footprint;
+            ownerships = new Shape.Ownership[footprint.x * footprint.y];
+            markers = new byte[footprint.x * footprint.y];
         }
 
-        GUILayout.EndHorizontal();
-
         GUILayout.Label("Composition: ");
-        for (int y = inspected.baseComposition.size.y - 1; y >= 0; y--)
+        for (int y = footprint.y - 1; y >= 0; y--)
         {
             GUILayout.BeginHorizontal();
 
-            for (int x = 0; x < inspected.baseComposition.size.x; x++)
+            for (int x = 0; x < footprint.x; x++)
             {
-                inspected.baseComposition.ownerships[x, y] = (Shape.Ownership)EditorGUILayout.EnumPopup(inspected.baseComposition.ownerships[x, y]);
+                int index = x + y * footprint.x;
+                ownerships[index] = (Shape.Ownership)EditorGUILayout.EnumPopup(ownerships[index]);
             }
 
             GUILayout.EndHorizontal();
         }
 
         GUILayout.Label("Markers: ");
-        for (int y = inspected.baseComposition.size.y - 1; y >= 0; y--)
+        for (int y = footprint.y - 1; y >= 0; y--)
         {
             GUILayout.BeginHorizontal();
 
-            for (int x = 0; x < inspected.baseComposition.size.x; x++)
+            for (int x = 0; x < footprint.x; x++)
             {
-                inspected.baseComposition.markers[x, y] = (byte)EditorGUILayout.IntField((int)inspected.baseComposition.markers[x, y]);
+                int index = x + y * footprint.x;
+                markers[index] = (byte)EditorGUILayout.IntField(markers[index]);
             }
 
             GUILayout.EndHorizontal();
@@ -47,8 +68,22 @@ public class ShapeInspector : Editor
 
         if (GUI.changed)
         {
-            inspected.Compose();
-            Debug.Log("Recomposing!");
+            SerializedProperty ownershipProp = serializedObject.FindProperty("ownershipSequence");
+            SerializedProperty markerProp = serializedObject.FindProperty("markerSequence");
+
+            ownershipProp.ClearArray();
+            markerProp.ClearArray();
+
+            for (int i = 0; i < ownerships.Length; i++)
+            {
+                ownershipProp.InsertArrayElementAtIndex(i);
+                ownershipProp.GetArrayElementAtIndex(i).enumValueIndex = (int)ownerships[i];
+
+                markerProp.InsertArrayElementAtIndex(i);
+                markerProp.GetArrayElementAtIndex(i).intValue = (byte)markers[i];
+            }
+
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }
