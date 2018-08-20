@@ -41,10 +41,10 @@ namespace Gameplay
                 {
                     foreach (Tile neighbour in neighbours)
                     {
-                        if (neighbour != null && neighbour.owner == last_owner)
+                        if (neighbour != null && neighbour.owner != null)
                         {
                             List<Tile> tiles = new List<Tile>();
-                            if (!TraceOrigin(neighbour, tiles)) tiles.ForEach(x => x.SetOwner(null, false));
+                            if (!TraceBase(neighbour, tiles)) tiles.ForEach(x => x.SetOwner(null, false));
                         }
                     }
                 }
@@ -97,7 +97,7 @@ namespace Gameplay
             }
         }
 
-        public static bool TraceOrigin(Tile root, List<Tile> explored)
+        public static bool TraceBase(Tile root, List<Tile> explored)
         {
 
             if (root.structure is Structures.Base && (root.structure as Structures.Base).main) return true;
@@ -106,7 +106,7 @@ namespace Gameplay
             IEnumerable<Tile> next = root.neighbours.Where(x => x != null && x.Owner == root.Owner && !explored.Contains(x)).OrderByDescending(x => (x.position - explored.First().position).sqrMagnitude);
             foreach (Tile tile in next)
             {
-                if (TraceOrigin(tile, explored)) return true;
+                if (TraceBase(tile, explored)) return true;
             }
 
             return false;
@@ -141,11 +141,11 @@ namespace Gameplay
         public void SelectDestination()
         {
             if (!Player.player_on_turn.destinations.Is(this)) throw new Exception("Tried to move " + Player.source.position + " into " + position + " - not a destination.");
-            SetOwner(Player.player_on_turn, true);
 
             bool free_tile = Player.source.Owner.free_tiles.Contains(Player.source);
             bool last_free_tile = free_tile && Player.source.Owner.free_tiles.Count == 1;
 
+            SetOwner(Player.player_on_turn, true);
             Player.source.SetOwner(null, true);
             Player.source = null;
 
