@@ -131,12 +131,25 @@ namespace Gameplay
                         tile.SelectSource();
                     else
                     {
-                        UI.View.Unzoom();
-                        if (Player.source != null && Player.player_on_turn.destinations.Is(tile))
-                            tile.SelectDestination();
+                        if (Player.player_on_turn.destinations.Is(tile))
+                        {
+                            if (Player.source != null)
+                            {
+                                tile.SelectDestination();
+                                UI.View.Unzoom();
+                            }
+                            else if (Player.player_on_turn.free_tiles.Count > 0)
+                            {
+                                Player.player_on_turn.free_tiles.First().SelectSource();
+                                tile.SelectDestination();
+                            }
+                        }
+                        else
+                        {
+                            UI.View.Unzoom();
+                        }
                     }
                 }
-
             }
         }
     }

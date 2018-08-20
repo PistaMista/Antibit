@@ -31,6 +31,8 @@ namespace Gameplay
                 Player last_owner = owner;
                 owner = player;
 
+                if (last_owner != null && last_owner.free_tiles.Contains(this)) last_owner.free_tiles.Remove(this);
+
                 RecalculateSourceAndDestinationProvision();
                 if (OnTileOwnershipChange != null) OnTileOwnershipChange(this, last_owner, owner);
 
@@ -141,10 +143,13 @@ namespace Gameplay
             if (!Player.player_on_turn.destinations.Is(this)) throw new Exception("Tried to move " + Player.source.position + " into " + position + " - not a destination.");
             SetOwner(Player.player_on_turn, true);
 
+            bool free_tile = Player.source.Owner.free_tiles.Contains(Player.source);
+            bool last_free_tile = free_tile && Player.source.Owner.free_tiles.Count == 1;
+
             Player.source.SetOwner(null, true);
             Player.source = null;
 
-            Player.Next();
+            if (!free_tile || last_free_tile) Player.Next();
         }
     }
 }

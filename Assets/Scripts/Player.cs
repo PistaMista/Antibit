@@ -16,12 +16,14 @@ namespace Gameplay
         public bool[,] destinations;
 
         public List<Structure> structures;
+        public List<Tile> free_tiles;
 
         void Awake()
         {
             sources = new bool[Board.board.size.x, Board.board.size.y];
             destinations = new bool[Board.board.size.x, Board.board.size.y];
             structures = new List<Structure>();
+            free_tiles = new List<Tile>();
         }
 
         public static Player player_on_turn;

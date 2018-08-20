@@ -14,7 +14,7 @@ namespace Gameplay.Structures
             base.Form(markedTiles);
             Tile directionalIndicator = markedTiles[1].Single();
             pushedTiles = markedTiles[0].Union(markedTiles[1]).OrderBy(x => Vector2.Distance(directionalIndicator.position, x.position)).ToArray();
-            //pushDirection = directionalIndicator.position - pushedTiles[0].position;
+            pushDirection = directionalIndicator.position - pushedTiles[1].position;
         }
 
         public override void Activate()
