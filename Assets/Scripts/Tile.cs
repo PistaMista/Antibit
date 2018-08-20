@@ -98,7 +98,7 @@ namespace Gameplay
         public static bool TraceOrigin(Tile root, List<Tile> explored)
         {
 
-            if (root.structure is Structures.Base) return true;
+            if (root.structure is Structures.Base && (root.structure as Structures.Base).main) return true;
             explored.Add(root);
 
             IEnumerable<Tile> next = root.neighbours.Where(x => x != null && x.Owner == root.Owner && !explored.Contains(x)).OrderByDescending(x => (x.position - explored.First().position).sqrMagnitude);

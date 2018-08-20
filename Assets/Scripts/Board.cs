@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
 
 namespace Gameplay
 {
@@ -17,8 +18,7 @@ namespace Gameplay
         public Tile tilePrefab;
         public Structure[] structurePrefabs;
         public float paddingToTileRatio;
-        public Vector2Int startingTileRectangleSize;
-        public int playerOriginYIndent;
+        public int playerMainBaseCenterIndent;
         Tile[,] tiles;
         public Dictionary<uint, Structure> structures;
         public Tile this[int a, int b]
@@ -92,23 +92,14 @@ namespace Gameplay
             Shape.Ghosts.Add();
 
             Vector2Int player_origin = new Vector2Int(Mathf.FloorToInt(board_side_length / 2.0f), 0);
-            Vector2Int player_rectangle_start = new Vector2Int(player_origin.x - Mathf.FloorToInt(board.startingTileRectangleSize.x / 2.0f), 0);
-            Vector2Int player_rectangle_end = new Vector2Int(player_rectangle_start.x + board.startingTileRectangleSize.x - 1, 0);
             for (int i = 0; i < 2; i++)
             {
                 Player player = Player.players[i];
-                int rect_y_half = Mathf.FloorToInt(board.startingTileRectangleSize.y / 2.0f);
-                player_rectangle_start.y = i == 0 ? (board.playerOriginYIndent - rect_y_half) : (board.size.y - 1 - board.playerOriginYIndent - rect_y_half);
-                player_rectangle_end.y = player_rectangle_start.y + board.startingTileRectangleSize.y - 1;
-                player_origin.y = player_rectangle_start.y + rect_y_half;
+                player_origin.y = i == 0 ? Board.board.playerMainBaseCenterIndent : Board.board.size.y - 1 - Board.board.playerMainBaseCenterIndent;
 
-                for (int x = player_rectangle_start.x; x <= player_rectangle_end.x; x++)
-                {
-                    for (int y = player_rectangle_start.y; y <= player_rectangle_end.y; y++)
-                    {
-                        board[x, y].SetOwner(player, false);
-                    }
-                }
+                Board.board.structurePrefabs.First(x => x is Structures.Base).shapes[0].Materialise(player_origin, owner: player, centered: true);
+                Structures.Base player_base = Board.board.structures.Values.First(x => x is Structures.Base && x.owner == player) as Structures.Base;
+                player_base.main = true;
             }
         }
 

@@ -56,3 +56,4 @@ MonoBehaviour:
   owner: {fileID: 0}
   position: {fileID: 0}
   generating_tiles: []
+  main: 0

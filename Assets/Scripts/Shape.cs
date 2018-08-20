@@ -17,10 +17,12 @@ public class Shape : ScriptableObject
 
 
     private sbyte requiredProgress;
-
-    public Vector2Int footprint;
-    public Ownership[] ownershipSequence;
-    public byte[] markerSequence;
+    [SerializeField]
+    Vector2Int footprint;
+    [SerializeField]
+    Ownership[] ownershipSequence;
+    [SerializeField]
+    byte[] markerSequence;
     private struct Composition : IEqualityComparer<Composition>
     {
         public bool Equals(Composition a, Composition b)
@@ -75,7 +77,7 @@ public class Shape : ScriptableObject
             }
         }
 
-        compositions = compositions.Distinct().ToArray();
+        compositions = compositions.Distinct(new Composition(0, 0)).ToArray();
 
         requiredProgress = (sbyte)ownershipSequence.Count(x => x == Ownership.FRIENDLY || x == Ownership.ENEMY);
     }
@@ -84,6 +86,23 @@ public class Shape : ScriptableObject
         foreach (Structure structure in Board.board.structurePrefabs)
             foreach (Shape shape in structure.shapes)
                 shape.Compose();
+    }
+    public void Materialise(Vector2Int position, Player owner, bool centered, int composition_index = 0)
+    {
+        Composition composition = compositions[composition_index];
+        if (centered) position = position - new Vector2Int(composition.size.x / 2, composition.size.y / 2);
+
+        for (int x = 0; x < composition.size.x; x++)
+        {
+            for (int y = 0; y < composition.size.y; y++)
+            {
+                Vector2Int globalPosition = position + new Vector2Int(x, y);
+                Ownership requirement = composition.ownerships[x, y];
+
+                Player tile_owner = requirement == Ownership.FRIENDLY ? owner : (requirement == Ownership.ENEMY ? owner.opponent : null);
+                Board.board[globalPosition.x, globalPosition.y].SetOwner(tile_owner, false);
+            }
+        }
     }
 
     public static class Ghosts
@@ -281,12 +300,12 @@ public class Shape : ScriptableObject
                     }
                 }
 
-                new_structure.Form(Board.board[position.x, position.y], formation, markers, shape.markerSequence.Max());
+                new_structure.owner = player;
 
                 Board.board.structures.Add(progress_record, new_structure);
-                Player.player_on_turn.structures.Add(new_structure);
+                player.structures.Add(new_structure);
 
-                new_structure.owner = Player.player_on_turn;
+                new_structure.Form(Board.board[position.x, position.y], formation, markers, shape.markerSequence.Max());
             }
 
             public void Deform()
