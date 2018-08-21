@@ -19,13 +19,8 @@ namespace Gameplay.Structures
 
         public override void Activate()
         {
-            foreach (Tile tile in pushedTiles)
-            {
-                if (tile.Owner != null)
-                {
-                    Tile.Push(tile, pushDirection);
-                }
-            }
+            Tile pushedTile = pushedTiles.LastOrDefault(x => x.Owner != null);
+            if (pushedTile != null) Tile.Push(pushedTile, pushDirection);
         }
     }
 }

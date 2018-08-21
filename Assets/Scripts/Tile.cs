@@ -37,16 +37,18 @@ namespace Gameplay
                 if (OnTileOwnershipChange != null) OnTileOwnershipChange(this, last_owner, owner);
 
 
-                if (checkIntegrity)
+                if (checkIntegrity) CheckNeighbourIntegrity();
+            }
+        }
+
+        private void CheckNeighbourIntegrity()
+        {
+            foreach (Tile neighbour in neighbours)
+            {
+                if (neighbour != null && neighbour.owner != null)
                 {
-                    foreach (Tile neighbour in neighbours)
-                    {
-                        if (neighbour != null && neighbour.owner != null)
-                        {
-                            List<Tile> tiles = new List<Tile>();
-                            if (!TraceBase(neighbour, tiles)) tiles.ForEach(x => x.SetOwner(null, false));
-                        }
-                    }
+                    List<Tile> tiles = new List<Tile>();
+                    if (!TraceBase(neighbour, tiles)) tiles.ForEach(x => x.SetOwner(null, false));
                 }
             }
         }
@@ -118,7 +120,7 @@ namespace Gameplay
             int y = direction.y == 0 ? 1 : direction.y;
             Push(tile, x + y);
 
-            tile.SetOwner(null, true);
+            tile.CheckNeighbourIntegrity();
         }
 
         static void Push(Tile root, int i)
