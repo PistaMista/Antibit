@@ -4,20 +4,23 @@ using UnityEngine;
 
 namespace Gameplay.Structures
 {
-    public class Base : Generator, Fragile
+    public class Siphon : Generator, Fragile
     {
-        public bool main = false;
         public void Shatter()
         {
-            main = false;
-
             for (int x = 0; x < tiles.GetLength(0); x++)
             {
                 for (int y = 0; y < tiles.GetLength(1); y++)
                 {
                     Tile tile = tiles[x, y];
-                    if (tile != null) tile.SetOwner(null, checkIntegrity: true);
+                    if (tile != null && tile.Owner == owner) tile.SetOwner(null, checkIntegrity: true);
                 }
+            }
+
+            for (int i = 0; i < generating_tiles.Length; i++)
+            {
+                Tile tile = generating_tiles[i];
+                if (tile != null) tile.SetOwner(null, checkIntegrity: true);
             }
         }
 
@@ -36,5 +39,6 @@ namespace Gameplay.Structures
                 if (!tile.Owner.free_tiles.Contains(tile)) tile.Owner.free_tiles.Add(tile);
             }
         }
+
     }
 }

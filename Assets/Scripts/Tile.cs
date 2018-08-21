@@ -145,13 +145,14 @@ namespace Gameplay
             if (!Player.player_on_turn.destinations.Is(this)) throw new Exception("Tried to move " + Player.source.position + " into " + position + " - not a destination.");
 
             bool free_tile = Player.source.Owner.free_tiles.Contains(Player.source);
-            bool last_free_tile = free_tile && Player.source.Owner.free_tiles.Count == 1;
 
             SetOwner(Player.player_on_turn, true);
+
+            Player source_owner = Player.source.Owner;
             Player.source.SetOwner(null, true);
             Player.source = null;
 
-            if (!free_tile || last_free_tile) Player.Next();
+            if (!free_tile || source_owner.free_tiles.Count == 0) Player.Next();
         }
     }
 }
