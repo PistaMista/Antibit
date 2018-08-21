@@ -4,10 +4,10 @@ using UnityEngine;
 
 namespace Gameplay.Structures
 {
-    public class Base : Generator
+    public class Base : Generator, Fragile
     {
         public bool main = false;
-        public override void Deform()
+        public void Shatter()
         {
             for (int x = 0; x < tiles.GetLength(0); x++)
             {
@@ -17,8 +17,6 @@ namespace Gameplay.Structures
                     if (tile != null) tile.SetOwner(null, checkIntegrity: true);
                 }
             }
-
-            base.Deform();
         }
 
         protected override void Form(Tile[][] markedTiles)

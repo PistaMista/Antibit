@@ -67,6 +67,8 @@ namespace Gameplay
                     if (tile != null && tile.structure == this) tile.structure = null;
                 }
             }
+
+            if (this is Structures.Fragile) (this as Structures.Fragile).Shatter();
         }
 
         public virtual void Activate()
