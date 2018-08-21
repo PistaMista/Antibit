@@ -37,7 +37,7 @@ namespace Gameplay
                 if (OnTileOwnershipChange != null) OnTileOwnershipChange(this, last_owner, owner);
 
 
-                if (checkIntegrity && last_owner != null)
+                if (checkIntegrity)
                 {
                     foreach (Tile neighbour in neighbours)
                     {
