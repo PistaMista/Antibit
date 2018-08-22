@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System;
+using Gameplay.Structures;
 
 namespace Gameplay
 {
@@ -68,7 +69,7 @@ namespace Gameplay
                 }
             }
 
-            if (this is Structures.Fragile) (this as Structures.Fragile).Shatter();
+            if (this is UNSTABLE) (this as UNSTABLE).DestroyTilesAfterDeformation();
         }
 
         public virtual void Activate()

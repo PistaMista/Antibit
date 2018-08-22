@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Gameplay.Structures
 {
+    /// <summary>
+    /// Generates friendly tiles.
+    /// </summary>
     public class Generator : Structure
     {
         public Tile[] generating_tiles;

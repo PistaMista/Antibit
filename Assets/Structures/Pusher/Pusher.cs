@@ -5,6 +5,9 @@ using System.Linq;
 
 namespace Gameplay.Structures
 {
+    /// <summary>
+    /// Pushes tiles forward, creating a stream of tiles used for damaging enemy infrastructure.
+    /// </summary>
     public class Pusher : Structure
     {
         public Tile[] pushedTiles;

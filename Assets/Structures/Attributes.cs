@@ -4,8 +4,20 @@ using UnityEngine;
 
 namespace Gameplay.Structures
 {
-    interface Fragile
+    /// <summary>
+    /// Implies that a structure destroys tiles after deforming.
+    /// </summary>
+    interface UNSTABLE
     {
-        void Shatter();
+        void DestroyTilesAfterDeformation();
+    }
+
+    /// <summary>
+    /// Specifies additional conditions for the formation of structures.
+    /// </summary>
+    interface CONDITIONAL
+    {
+        bool IsFormableFor(Player player);
+        bool IsDeformable();
     }
 }

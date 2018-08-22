@@ -4,9 +4,9 @@ using UnityEngine;
 
 namespace Gameplay.Structures
 {
-    public class Mine : Structure, Fragile
+    public class Mine : Structure, UNSTABLE
     {
-        public void Shatter()
+        public void DestroyTilesAfterDeformation()
         {
             for (int x = 0; x < tiles.GetLength(0); x++)
             {

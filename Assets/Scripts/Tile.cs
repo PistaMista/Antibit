@@ -145,10 +145,9 @@ namespace Gameplay
             if (!Player.player_on_turn.destinations.Is(this)) throw new Exception("Tried to move " + Player.source.position + " into " + position + " - not a destination.");
 
             bool free_tile = Player.source.Owner.free_tiles.Contains(Player.source);
+            Player source_owner = Player.source.Owner;
 
             SetOwner(Player.player_on_turn, true);
-
-            Player source_owner = Player.source.Owner;
             Player.source.SetOwner(null, true);
             Player.source = null;
 

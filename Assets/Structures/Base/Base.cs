@@ -1,13 +1,25 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 namespace Gameplay.Structures
 {
-    public class Base : Generator, Fragile
+    /// <summary>
+    /// The base structure of each player. Players lose after their base is deformed.
+    /// </summary>
+    public class Base : Generator, UNSTABLE, CONDITIONAL
     {
+        public bool IsFormableFor(Player player)
+        {
+            return !player.structures.Any(x => x is Base);
+        }
+        public bool IsDeformable()
+        {
+            return true;
+        }
         public bool main = false;
-        public void Shatter()
+        public void DestroyTilesAfterDeformation()
         {
             main = false;
 

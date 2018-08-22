@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using Gameplay;
+using Gameplay.Structures;
 
 [CreateAssetMenu(fileName = "Shape", menuName = "Shape", order = 2)]
 public class Shape : ScriptableObject
@@ -256,7 +257,13 @@ public class Shape : ScriptableObject
             {
                 get
                 {
-                    return Board.board.structures.ContainsKey(progress_record) && !IsCompleteFor(Board.board.structures[progress_record].owner);
+                    Structure s;
+                    if (Board.board.structures.TryGetValue(progress_record, out s))
+                    {
+                        return (!(s is CONDITIONAL) || (s as CONDITIONAL).IsDeformable()) && !IsCompleteFor(s.owner);
+                    }
+
+                    return false;
                 }
             }
 
@@ -268,7 +275,7 @@ public class Shape : ScriptableObject
                     {
                         foreach (Player player in Player.players)
                         {
-                            if (IsCompleteFor(player)) return player;
+                            if (IsCompleteFor(player) && (!(structure is CONDITIONAL) || (structure as CONDITIONAL).IsFormableFor(player))) return player;
                         }
                     }
 
