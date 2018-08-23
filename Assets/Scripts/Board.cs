@@ -110,7 +110,7 @@ namespace Gameplay
                 if (Input.GetKeyDown(i.ToString()))
                 {
                     Debug.Log("Pressed " + i * 9);
-                    Board.Renew(i * 9);
+                    Board.Renew(i * 21);
                 }
             }
         }
