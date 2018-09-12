@@ -9,8 +9,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5e7bc5b6ec30d344295eb7b08cecde6b, type: 3}
-  m_Name: BasicM
+  m_Name: Shape1
   m_EditorClassIdentifier: 
-  footprint: {x: 4, y: 3}
-  ownershipSequence: 030003030300000003000200
-  markerSequence: 000000000100000002000000
+  footprint: {x: 5, y: 5}
+  ownershipSequence: 00000300000200030002020003000202000300020200030002
+  markerSequence: 00000100000000010000000001000000000100000000020000

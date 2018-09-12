@@ -22,12 +22,8 @@ namespace Gameplay.Structures
 
         public override void Activate()
         {
-            while (true)
-            {
-                Tile pushedTile = pushedTiles.LastOrDefault(x => x.Owner != null);
-                if (pushedTile != null) Tile.Push(pushedTile, pushDirection);
-                else break;
-            }
+            Tile pushedTile = pushedTiles.LastOrDefault(x => x.Owner != null);
+            if (pushedTile != null) Tile.Push(pushedTile, pushDirection);
         }
     }
 }
