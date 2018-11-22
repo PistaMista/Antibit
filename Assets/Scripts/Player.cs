@@ -24,6 +24,7 @@ namespace Gameplay
             destinations = new bool[Board.board.size.x, Board.board.size.y];
             structures = new List<Structure>();
             free_tiles = new List<Tile>();
+
         }
 
         public static Player player_on_turn;
