@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Linq;
 using System;
 using Gameplay.Structures;
+using Gameplay.Tiles;
 
 namespace Gameplay
 {
@@ -69,7 +70,7 @@ namespace Gameplay
                 }
             }
 
-            if (this is UNSTABLE) (this as UNSTABLE).DestroyTilesAfterDeformation();
+            if (this is SA_UNSTABLE) (this as SA_UNSTABLE).DestroyTilesAfterDeformation();
         }
 
         public virtual void Activate()

@@ -1,7 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+
+using Gameplay.Tiles;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.Tilemaps;
 using System.Linq;
 
 namespace Gameplay
@@ -13,12 +15,42 @@ namespace Gameplay
         {
             board = this;
             Shape.ComposeAll();
+
+
+
+            GameObject parent = new GameObject("Tiles");
+            parent.transform.SetParent(this.transform);
+
+            Tilemap renderer = GetComponentInChildren<Tilemap>();
+            Vector3Int size = renderer.size;
+            Vector3Int origin = renderer.origin;
+
+            tiles = new Tiles.Tile[size.x, size.y];
+            for (int x = 0; x < size.x; x++)
+            {
+                for (int y = 0; y < size.y; y++)
+                {
+                    Vector3Int position = origin + new Vector3Int(x, y, 0);
+                    UnityEngine.Tilemaps.Tile render_tile = renderer.GetTile<UnityEngine.Tilemaps.Tile>(position);
+
+                    if (render_tile != null)
+                    {
+                        Tiles.Tile tile = Instantiate(tilePrefabs.First(candidate => candidate.name == render_tile.name).gameObject).GetComponent<Tiles.Tile>();
+                        tile.transform.SetParent(parent.transform);
+
+                        tile.position = new Vector2Int(x, y);
+
+                        tiles[x, y] = tile;
+                    }
+                }
+            }
+
         }
-        public Vector2Int dimensions;
+        public Tiles.Tile[] tilePrefabs;
         public Structure[] structurePrefabs;
-        public Tile[,] tiles;
+        public Tiles.Tile[,] tiles;
         public Dictionary<uint, Structure> structures;
-        public Tile this[int a, int b]
+        public Tiles.Tile this[int a, int b]
         {
             get
             {
@@ -105,7 +137,7 @@ namespace Gameplay
             Debug.Log("Clicked tile " + pos.x + " " + pos.y);
             if (!Player.player_on_turn.ai)
             {
-                Tile tile = board[pos.x, pos.y];
+                Tiles.Tile tile = board[pos.x, pos.y];
                 if (!UI.View.zoomed)
                 {
                     UI.View.ZoomInto(pos);

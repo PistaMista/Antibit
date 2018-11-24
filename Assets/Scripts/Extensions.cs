@@ -5,12 +5,12 @@ using UnityEngine;
 
 public static class Extensions
 {
-    public static bool Is(this bool[,] array, Gameplay.Tile tile)
+    public static bool Is(this bool[,] array, Gameplay.Tiles.Tile tile)
     {
         return array.Is(tile.position);
     }
 
-    public static void Set(this bool[,] array, Gameplay.Tile tile, bool value)
+    public static void Set(this bool[,] array, Gameplay.Tiles.Tile tile, bool value)
     {
         array.Set(tile.position, value);
         tile.RefreshColor();

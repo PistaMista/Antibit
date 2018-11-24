@@ -9,8 +9,8 @@ namespace Gameplay.Structures
     /// </summary>
     public class Generator : Structure
     {
-        public Tile[] generating_tiles;
-        protected override void Form(Tile[][] markedTiles)
+        public Tiles.Tile[] generating_tiles;
+        protected override void Form(Tiles.Tile[][] markedTiles)
         {
             base.Form(markedTiles);
             generating_tiles = markedTiles[0];
@@ -18,7 +18,7 @@ namespace Gameplay.Structures
 
         public override void Activate()
         {
-            foreach (Tile tile in generating_tiles)
+            foreach (Tiles.Tile tile in generating_tiles)
             {
                 if (tile.Owner == null)
                 {

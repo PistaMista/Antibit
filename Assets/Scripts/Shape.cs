@@ -24,9 +24,9 @@ public class Shape : ScriptableObject
     Ownership[] ownershipSequence;
     [SerializeField]
     byte[] markerSequence;
-    private struct Composition : IEqualityComparer<Composition>
+    private struct OrientedComposition : IEqualityComparer<OrientedComposition>
     {
-        public bool Equals(Composition a, Composition b)
+        public bool Equals(OrientedComposition a, OrientedComposition b)
         {
             return a.ownerships.GetLength(0) == b.ownerships.GetLength(0) &&
             a.ownerships.GetLength(1) == b.ownerships.GetLength(1) &&
@@ -35,11 +35,11 @@ public class Shape : ScriptableObject
             a.markers.GetLength(1) == b.markers.GetLength(1) &&
             a.markers.Cast<byte>().SequenceEqual(b.markers.Cast<byte>());
         }
-        public int GetHashCode(Composition x)
+        public int GetHashCode(OrientedComposition x)
         {
             return 23 * ownerships.GetHashCode() + markers.GetHashCode();
         }
-        public Composition(int size_x, int size_y)
+        public OrientedComposition(int size_x, int size_y)
         {
             ownerships = new Ownership[size_x, size_y];
             markers = new byte[size_x, size_y];
@@ -54,13 +54,13 @@ public class Shape : ScriptableObject
         public Ownership[,] ownerships;
         public byte[,] markers;
     }
-    private Composition[] compositions;
+    private OrientedComposition[] compositions;
     private void Compose()
     {
-        compositions = new Composition[4];
+        compositions = new OrientedComposition[4];
         for (int i = 0; i < 4; i++)
         {
-            compositions[i] = i % 2 == 0 ? new Composition(footprint.x, footprint.y) : new Composition(footprint.y, footprint.x);
+            compositions[i] = i % 2 == 0 ? new OrientedComposition(footprint.x, footprint.y) : new OrientedComposition(footprint.y, footprint.x);
         }
 
         int written_position = 0;
@@ -78,7 +78,7 @@ public class Shape : ScriptableObject
             }
         }
 
-        compositions = compositions.Distinct(new Composition(0, 0)).ToArray();
+        compositions = compositions.Distinct(new OrientedComposition(0, 0)).ToArray();
 
         requiredProgress = (sbyte)ownershipSequence.Count(x => x == Ownership.FRIENDLY || x == Ownership.ENEMY);
     }
@@ -90,7 +90,7 @@ public class Shape : ScriptableObject
     }
     public void Materialise(Vector2Int position, Player owner, bool centered, int composition_index = 0)
     {
-        Composition composition = compositions[composition_index];
+        OrientedComposition composition = compositions[composition_index];
         if (centered) position = position - new Vector2Int(composition.size.x / 2, composition.size.y / 2);
 
         for (int x = 0; x < composition.size.x; x++)
@@ -144,7 +144,7 @@ public class Shape : ScriptableObject
                     }
                 }
             }
-            public static void OnAnyOwnershipChange(Gameplay.Tile tile, Player old_owner, Player new_owner)
+            public static void OnAnyOwnershipChange(Gameplay.Tiles.Tile tile, Player old_owner, Player new_owner)
             {
                 Classification[] classifications = new Classification[tiles[tile.position.x, tile.position.y].Length];
 
@@ -192,7 +192,7 @@ public class Shape : ScriptableObject
                 this.progress_record = progress_record;
                 structure = null;
                 shape = null;
-                composition = new Composition();
+                composition = new OrientedComposition();
                 position = Vector2Int.zero;
 
                 uint starting_position = 0;
@@ -251,7 +251,7 @@ public class Shape : ScriptableObject
             public readonly uint progress_record;
             public readonly Structure structure;
             public readonly Shape shape;
-            public readonly Composition composition;
+            public readonly OrientedComposition composition;
             public readonly Vector2Int position;
             public bool deforming
             {
@@ -260,7 +260,7 @@ public class Shape : ScriptableObject
                     Structure s;
                     if (Board.board.structures.TryGetValue(progress_record, out s))
                     {
-                        return (!(s is CONDITIONAL) || (s as CONDITIONAL).IsDeformable()) && !IsCompleteFor(s.owner);
+                        return (!(s is SA_CONDITIONAL) || (s as SA_CONDITIONAL).IsDeformable()) && !IsCompleteFor(s.owner);
                     }
 
                     return false;
@@ -275,7 +275,7 @@ public class Shape : ScriptableObject
                     {
                         foreach (Player player in Player.players)
                         {
-                            if (IsCompleteFor(player) && (!(structure is CONDITIONAL) || (structure as CONDITIONAL).IsFormableFor(player))) return player;
+                            if (IsCompleteFor(player) && (!(structure is SA_CONDITIONAL) || (structure as SA_CONDITIONAL).IsFormableFor(player))) return player;
                         }
                     }
 
@@ -367,7 +367,7 @@ public class Shape : ScriptableObject
                 {
                     catalog[1][1, shape_count] = (uint)variation_count;
 
-                    foreach (Composition composition in shape.compositions)
+                    foreach (OrientedComposition composition in shape.compositions)
                     {
                         catalog[2][1, variation_count] = (uint)ghost_progress_count;
 
@@ -401,7 +401,7 @@ public class Shape : ScriptableObject
 
             foreach (Structure structure in Board.board.structurePrefabs)
                 foreach (Shape shape in structure.shapes)
-                    foreach (Composition composition in shape.compositions)
+                    foreach (OrientedComposition composition in shape.compositions)
                     {
                         int xsize = Mathf.Clamp(composition.size.x, 0, Board.board.center.x);
                         int ysize = Mathf.Clamp(composition.size.y, 0, Board.board.center.y);
@@ -429,7 +429,7 @@ public class Shape : ScriptableObject
             {
                 foreach (Shape shape in structure.shapes)
                 {
-                    foreach (Composition composition in shape.compositions)
+                    foreach (OrientedComposition composition in shape.compositions)
                     {
                         Vector2Int bounds = new Vector2Int(Board.board.size.x - composition.size.x, Board.board.size.y - composition.size.y);
                         for (int board_y = 0; board_y <= bounds.y; board_y++)
@@ -452,8 +452,8 @@ public class Shape : ScriptableObject
                 }
             }
 
-            Gameplay.Tile.OnTileOwnershipChange -= Tile.OnAnyOwnershipChange;
-            Gameplay.Tile.OnTileOwnershipChange += Tile.OnAnyOwnershipChange;
+            Gameplay.Tiles.Tile.OnTileOwnershipChange -= Tile.OnAnyOwnershipChange;
+            Gameplay.Tiles.Tile.OnTileOwnershipChange += Tile.OnAnyOwnershipChange;
         }
     }
 }

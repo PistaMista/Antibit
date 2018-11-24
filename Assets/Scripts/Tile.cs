@@ -5,13 +5,12 @@ using UnityEngine.UI;
 using System.Linq;
 using System;
 
-namespace Gameplay
+namespace Gameplay.Tiles
 {
     public class Tile : MonoBehaviour
     {
         public Vector2Int position;
         public Tile[] neighbours;
-        private RawImage image;
 
         private Player owner;
         public Player Owner
@@ -58,16 +57,10 @@ namespace Gameplay
             Color color = Owner != null ? (Owner.red ? Color.red : Color.green) : Color.gray;
             color.a = Player.player_on_turn.destinations.Is(this) || Player.player_on_turn.sources.Is(this) ? 1.0f : 0.5f;
             if (structure != null) color.b = 1.0f;
-            image.color = color;
         }
 
 
         public Structure structure;
-
-        void Awake()
-        {
-            image = GetComponent<RawImage>();
-        }
 
         public void RecalculateSourceAndDestinationProvision()
         {

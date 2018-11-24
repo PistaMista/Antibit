@@ -8,7 +8,7 @@ namespace Gameplay.Structures
     /// <summary>
     /// The base structure of each player. Players lose after their base is deformed.
     /// </summary>
-    public class Base : Generator, UNSTABLE, CONDITIONAL
+    public class Base : Generator, SA_UNSTABLE, SA_CONDITIONAL
     {
         public bool IsFormableFor(Player player)
         {
@@ -27,13 +27,13 @@ namespace Gameplay.Structures
             {
                 for (int y = 0; y < tiles.GetLength(1); y++)
                 {
-                    Tile tile = tiles[x, y];
+                    Tiles.Tile tile = tiles[x, y];
                     if (tile != null) tile.SetOwner(null, checkIntegrity: true);
                 }
             }
         }
 
-        protected override void Form(Tile[][] markedTiles)
+        protected override void Form(Tiles.Tile[][] markedTiles)
         {
             base.Form(markedTiles);
             Activate();
@@ -44,7 +44,7 @@ namespace Gameplay.Structures
             base.Activate();
             for (int i = 0; i < generating_tiles.Length; i++)
             {
-                Tile tile = generating_tiles[i];
+                Tiles.Tile tile = generating_tiles[i];
                 if (!tile.Owner.free_tiles.Contains(tile)) tile.Owner.free_tiles.Add(tile);
             }
         }
