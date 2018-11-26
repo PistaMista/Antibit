@@ -57,7 +57,6 @@
     },
     "gitlens.historyExplorer.location": "scm",
     "workbench.colorTheme": "Material Theme Darker High Contrast",
-    "materialTheme.fixIconsRunning": false,
     "workbench.iconTheme": "eq-material-theme-icons-darker",
     "editor.fontFamily": "Fira Code, Consolas, 'Courier New', monospace",
     "editor.fontLigatures": true,
@@ -99,7 +98,7 @@
     "git.enableSmartCommit": true,
     "git.confirmSync": false,
     "git.autofetch": true,
-    "editor.tabCompletion": true,
+    "editor.tabCompletion": "on",
     "editor.formatOnSave": true,
     "editor.formatOnType": true
 }
