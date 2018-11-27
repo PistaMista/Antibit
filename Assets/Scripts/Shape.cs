@@ -144,7 +144,7 @@ public class Shape : ScriptableObject
                     }
                 }
             }
-            public static void OnAnyOwnershipChange(Gameplay.Tiles.Tile tile, Player old_owner, Player new_owner)
+            public static void OnTileChange(Gameplay.Tiles.Tile tile, Player old_owner, Player new_owner)
             {
                 Classification[] classifications = new Classification[tiles[tile.position.x, tile.position.y].Length];
 
@@ -452,8 +452,8 @@ public class Shape : ScriptableObject
                 }
             }
 
-            Gameplay.Tiles.Tile.OnTileOwnershipChange -= Tile.OnAnyOwnershipChange;
-            Gameplay.Tiles.Tile.OnTileOwnershipChange += Tile.OnAnyOwnershipChange;
+            Gameplay.Tiles.Tile.OnTileChange -= Tile.OnTileChange;
+            Gameplay.Tiles.Tile.OnTileChange += Tile.OnTileChange;
         }
     }
 }

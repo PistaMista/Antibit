@@ -21,7 +21,7 @@ namespace Gameplay.Tiles
             }
         }
 
-        public static Action<Tile, Player, Player> OnTileOwnershipChange;
+        public static Action<Tile, Player, Player> OnTileChange;
 
         public void SetOwner(Player player, bool checkIntegrity)
         {
@@ -33,7 +33,7 @@ namespace Gameplay.Tiles
                 if (last_owner != null && last_owner.free_tiles.Contains(this)) last_owner.free_tiles.Remove(this);
 
                 RecalculateSourceAndDestinationProvision();
-                if (OnTileOwnershipChange != null) OnTileOwnershipChange(this, last_owner, owner);
+                if (OnTileChange != null) OnTileChange(this, last_owner, owner);
 
 
                 if (checkIntegrity) CheckNeighbourIntegrity();
