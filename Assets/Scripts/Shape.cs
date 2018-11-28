@@ -144,44 +144,45 @@ public class Shape : ScriptableObject
                     }
                 }
             }
-            public static void OnTileChange(Gameplay.Tiles.TileObject tile, Player old_owner, Player new_owner)
+        }
+
+        public static void OnTileChange(Gameplay.Tiles.Tile tile)
+        {
+            Classification[] classifications = new Classification[tiles[tile.position.x, tile.position.y].Length];
+
+            for (int i = 0; i < classifications.Length; i++)
+                classifications[i] = new Classification(tiles[tile.position.x, tile.position.y][i].progress_record);
+
+            int? deformed_classification = null;
+            for (int i = 0; i < classifications.Length; i++)
             {
-                Classification[] classifications = new Classification[tiles[tile.position.x, tile.position.y].Length];
+                tiles[tile.position.x, tile.position.y][i].OnOwnershipMovement(old_owner, true);
+                tiles[tile.position.x, tile.position.y][i].OnOwnershipMovement(new_owner, false);
 
-                for (int i = 0; i < classifications.Length; i++)
-                    classifications[i] = new Classification(tiles[tile.position.x, tile.position.y][i].progress_record);
-
-                int? deformed_classification = null;
-                for (int i = 0; i < classifications.Length; i++)
-                {
-                    tiles[tile.position.x, tile.position.y][i].OnOwnershipMovement(old_owner, true);
-                    tiles[tile.position.x, tile.position.y][i].OnOwnershipMovement(new_owner, false);
-
-                    if (classifications[i].deforming) deformed_classification = i;
-                }
-
-                if (deformed_classification != null)
-                    classifications[(int)deformed_classification].Deform();
-
-
-                int formed_classification = 0;
-                Player forming_player = null;
-                for (int i = 0; i < classifications.Length; i++)
-                {
-                    Player candidate = classifications[i].forming_player;
-                    if (candidate != null)
-                        if (forming_player != null)
-                            return;
-                        else
-                        {
-                            forming_player = candidate;
-                            formed_classification = i;
-                        }
-                }
-
-                if (forming_player != null)
-                    classifications[formed_classification].FormFor(forming_player);
+                if (classifications[i].deforming) deformed_classification = i;
             }
+
+            if (deformed_classification != null)
+                classifications[(int)deformed_classification].Deform();
+
+
+            int formed_classification = 0;
+            Player forming_player = null;
+            for (int i = 0; i < classifications.Length; i++)
+            {
+                Player candidate = classifications[i].forming_player;
+                if (candidate != null)
+                    if (forming_player != null)
+                        return;
+                    else
+                    {
+                        forming_player = candidate;
+                        formed_classification = i;
+                    }
+            }
+
+            if (forming_player != null)
+                classifications[formed_classification].FormFor(forming_player);
         }
         static uint[][,] catalog;
 
@@ -451,9 +452,6 @@ public class Shape : ScriptableObject
                     }
                 }
             }
-
-            Gameplay.Tiles.TileObject.OnTileChange -= Tile.OnTileChange;
-            Gameplay.Tiles.TileObject.OnTileChange += Tile.OnTileChange;
         }
     }
 }

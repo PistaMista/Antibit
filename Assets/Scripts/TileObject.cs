@@ -13,7 +13,7 @@ namespace Gameplay.Tiles
     {
         private TileObject original;
         public TileObject present;
-
+        readonly Transform parent;
 
         public readonly Vector2Int position;
         private Tile[] _neighbours;
@@ -26,21 +26,38 @@ namespace Gameplay.Tiles
             }
         }
 
-        public Tile(Vector2Int position, out Action post_initializer)
+        public Tile(Vector2Int position, GameObject prefab, Transform parent, ref Action post_initializer)
         {
+            this.position = position;
 
+            original = GameObject.Instantiate(prefab).GetComponent<TileObject>();
+            present = GameObject.Instantiate(prefab).GetComponent<TileObject>();
+            this.parent = parent;
+
+            original.gameObject.transform.SetParent(parent);
+            present.gameObject.transform.SetParent(parent);
+
+            post_initializer += AssignNeighbours;
         }
 
-        public void AssignNeighbours()
+        private void AssignNeighbours()
         {
-
+            _neighbours = new Tile[4];
+            for (int i = 0; i < 4; i++)
+            {
+                Vector2Int pos = position + new Vector2Int((i - 1) % 2, (i - 2) % 2);
+                if (pos.x >= 0 && pos.x < Board.board.tiles.GetLength(0) && pos.y >= 0 && pos.y < Board.board.tiles.GetLength(1))
+                {
+                    _neighbours[i] = Board.board[pos.x, pos.y];
+                }
+            }
         }
 
         public void ApplyChange()
         {
             if (original != present)
             {
-
+                Shape.Ghosts.OnTileChange(this);
             }
         }
     }
