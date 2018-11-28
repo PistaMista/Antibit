@@ -27,13 +27,13 @@ namespace Gameplay.Structures
             {
                 for (int y = 0; y < tiles.GetLength(1); y++)
                 {
-                    Tiles.Tile tile = tiles[x, y];
+                    Tiles.TileObject tile = tiles[x, y];
                     if (tile != null) tile.SetOwner(null, checkIntegrity: true);
                 }
             }
         }
 
-        protected override void Form(Tiles.Tile[][] markedTiles)
+        protected override void Form(Tiles.TileObject[][] markedTiles)
         {
             base.Form(markedTiles);
             Activate();
@@ -44,7 +44,7 @@ namespace Gameplay.Structures
             base.Activate();
             for (int i = 0; i < generating_tiles.Length; i++)
             {
-                Tiles.Tile tile = generating_tiles[i];
+                Tiles.TileObject tile = generating_tiles[i];
                 if (!tile.Owner.free_tiles.Contains(tile)) tile.Owner.free_tiles.Add(tile);
             }
         }

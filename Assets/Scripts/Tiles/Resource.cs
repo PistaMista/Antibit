@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Gameplay.Tiles
 {
-    public class Resource : Tile
+    public class Resource : TileObject
     {
 
     }

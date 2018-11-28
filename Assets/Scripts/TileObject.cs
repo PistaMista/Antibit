@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
@@ -7,11 +9,43 @@ using System;
 
 namespace Gameplay.Tiles
 {
-    public class Tile : MonoBehaviour
+    public class Tile
     {
-        public Vector2Int position;
-        public Tile[] neighbours;
+        private TileObject original;
+        public TileObject present;
 
+
+        public readonly Vector2Int position;
+        private Tile[] _neighbours;
+
+        public ReadOnlyCollection<Tile> neighbours
+        {
+            get
+            {
+                return Array.AsReadOnly(_neighbours);
+            }
+        }
+
+        public Tile(Vector2Int position, out Action post_initializer)
+        {
+
+        }
+
+        public void AssignNeighbours()
+        {
+
+        }
+
+        public void ApplyChange()
+        {
+            if (original != present)
+            {
+
+            }
+        }
+    }
+    public class TileObject : MonoBehaviour
+    {
         private Player owner;
         public Player Owner
         {
@@ -21,7 +55,7 @@ namespace Gameplay.Tiles
             }
         }
 
-        public static Action<Tile, Player, Player> OnTileChange;
+        public static Action<TileObject, Player, Player> OnTileChange;
 
         public void SetOwner(Player player, bool checkIntegrity)
         {
@@ -42,11 +76,11 @@ namespace Gameplay.Tiles
 
         private void CheckNeighbourIntegrity()
         {
-            foreach (Tile neighbour in neighbours)
+            foreach (TileObject neighbour in neighbours)
             {
                 if (neighbour != null && neighbour.owner != null)
                 {
-                    List<Tile> tiles = new List<Tile>();
+                    List<TileObject> tiles = new List<TileObject>();
                     if (!TraceBase(neighbour, tiles)) tiles.ForEach(x => x.SetOwner(null, false));
                 }
             }
@@ -80,7 +114,7 @@ namespace Gameplay.Tiles
                 }
             }
 
-            foreach (Tile neighbour in neighbours)
+            foreach (TileObject neighbour in neighbours)
             {
                 if (neighbour != null)
                 {
@@ -92,14 +126,14 @@ namespace Gameplay.Tiles
             }
         }
 
-        public static bool TraceBase(Tile root, List<Tile> explored)
+        public static bool TraceBase(TileObject root, List<TileObject> explored)
         {
 
             if (root.structure is Structures.Base && (root.structure as Structures.Base).main) return true;
             explored.Add(root);
 
-            IEnumerable<Tile> next = root.neighbours.Where(x => x != null && x.Owner == root.Owner && !explored.Contains(x)).OrderByDescending(x => (x.position - explored.First().position).sqrMagnitude);
-            foreach (Tile tile in next)
+            IEnumerable<TileObject> next = root.neighbours.Where(x => x != null && x.Owner == root.Owner && !explored.Contains(x)).OrderByDescending(x => (x.position - explored.First().position).sqrMagnitude);
+            foreach (TileObject tile in next)
             {
                 if (TraceBase(tile, explored)) return true;
             }
@@ -107,7 +141,7 @@ namespace Gameplay.Tiles
             return false;
         }
 
-        public static void Push(Tile tile, Vector2Int direction)
+        public static void Push(TileObject tile, Vector2Int direction)
         {
             int x = direction.x == 0 ? 2 : direction.x;
             int y = direction.y == 0 ? 1 : direction.y;
@@ -116,9 +150,9 @@ namespace Gameplay.Tiles
             tile.CheckNeighbourIntegrity();
         }
 
-        static void Push(Tile root, int i)
+        static void Push(TileObject root, int i)
         {
-            Tile next = root.neighbours[i];
+            TileObject next = root.neighbours[i];
             if (next != null)
             {
                 if (next.Owner != null) Push(next, i);

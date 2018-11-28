@@ -16,20 +16,20 @@ namespace Gameplay
         public bool[,] destinations;
 
         public List<Structure> structures;
-        public List<Tiles.Tile> free_tiles;
+        public List<Tiles.TileObject> free_tiles;
 
         void Awake()
         {
             sources = new bool[Board.board.size.x, Board.board.size.y];
             destinations = new bool[Board.board.size.x, Board.board.size.y];
             structures = new List<Structure>();
-            free_tiles = new List<Tiles.Tile>();
+            free_tiles = new List<Tiles.TileObject>();
 
         }
 
         public static Player player_on_turn;
         public static Player[] players;
-        public static Tiles.Tile source;
+        public static Tiles.TileObject source;
         public static void ReinitializePlayers(bool ai)
         {
             if (players != null) Array.ForEach(players, x => Destroy(x));

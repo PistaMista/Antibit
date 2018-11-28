@@ -12,25 +12,25 @@ namespace Gameplay
     {
         public Shape[] shapes;
         public Player owner;
-        protected Tile[,] tiles;
+        protected TileObject[,] tiles;
 
 
-        public Tile position;
+        public TileObject position;
 
-        public void Form(Tile tile, bool[,] formation, int[,] markers, int highest_marker)
+        public void Form(TileObject tile, bool[,] formation, int[,] markers, int highest_marker)
         {
-            tiles = new Tile[formation.GetLength(0), formation.GetLength(1)];
-            List<Tile>[] markedTiles = new List<Tile>[highest_marker];
+            tiles = new TileObject[formation.GetLength(0), formation.GetLength(1)];
+            List<TileObject>[] markedTiles = new List<TileObject>[highest_marker];
             for (int i = 0; i < highest_marker; i++)
             {
-                markedTiles[i] = new List<Tile>();
+                markedTiles[i] = new List<TileObject>();
             }
 
             for (int x = 0; x < formation.GetLength(0); x++)
             {
                 for (int y = 0; y < formation.GetLength(1); y++)
                 {
-                    Tile t = Board.board[tile.position.x + x, tile.position.y + y];
+                    TileObject t = Board.board[tile.position.x + x, tile.position.y + y];
 
                     if (formation[x, y])
                     {
@@ -54,7 +54,7 @@ namespace Gameplay
             Form(Array.ConvertAll(markedTiles, x => x.ToArray()));
         }
 
-        protected virtual void Form(Tile[][] markedTiles)
+        protected virtual void Form(TileObject[][] markedTiles)
         {
 
         }
@@ -65,7 +65,7 @@ namespace Gameplay
             {
                 for (int y = 0; y < tiles.GetLength(1); y++)
                 {
-                    Tile tile = tiles[x, y];
+                    TileObject tile = tiles[x, y];
                     if (tile != null && tile.structure == this) tile.structure = null;
                 }
             }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Gameplay.Tiles
 {
-    public class Wall : Tile, TA_SOLID
+    public class Wall : TileObject, TA_SOLID
     {
 
     }
