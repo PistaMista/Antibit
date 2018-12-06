@@ -34,8 +34,8 @@ namespace Gameplay.Tiles
             present = GameObject.Instantiate(prefab).GetComponent<TileObject>();
             this.parent = parent;
 
-            original.gameObject.transform.SetParent(parent);
-            present.gameObject.transform.SetParent(parent);
+            present.transform.SetParent(parent);
+            original.transform.SetParent(present.transform);
 
             post_initializer += AssignNeighbours;
         }
@@ -60,8 +60,11 @@ namespace Gameplay.Tiles
                 //Shape.Ghosts.OnTileChange(this);
 
                 GameObject.Destroy(original.gameObject);
+
                 original = present;
-                present = GameObject.Instantiate(original.gameObject, original.transform.parent).GetComponent<TileObject>();
+                present = GameObject.Instantiate(present.gameObject, present.transform.parent).GetComponent<TileObject>();
+
+                original.transform.SetParent(present.transform);
             }
         }
     }
