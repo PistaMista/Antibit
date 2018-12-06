@@ -14,7 +14,6 @@ namespace Gameplay
         void Start()
         {
             board = this;
-            Shape.ComposeAll();
 
             Transform parent = new GameObject("Tiles").transform;
             parent.transform.SetParent(this.transform);
@@ -49,9 +48,7 @@ namespace Gameplay
             post_initializer();
         }
         public Tiles.TileObject[] tilePrefabs;
-        public Structure[] structurePrefabs;
         public Tiles.Tile[,] tiles;
-        public Dictionary<uint, Structure> structures;
         public Tiles.Tile this[int a, int b]
         {
             get

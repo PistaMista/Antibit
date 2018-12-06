@@ -57,7 +57,11 @@ namespace Gameplay.Tiles
         {
             if (original != present)
             {
-                Shape.Ghosts.OnTileChange(this);
+                //Shape.Ghosts.OnTileChange(this);
+
+                GameObject.Destroy(original.gameObject);
+                original = present;
+                present = GameObject.Instantiate(original.gameObject, original.transform.parent).GetComponent<TileObject>();
             }
         }
     }
@@ -70,132 +74,6 @@ namespace Gameplay.Tiles
             {
                 return owner;
             }
-        }
-
-        public static Action<TileObject, Player, Player> OnTileChange;
-
-        public void SetOwner(Player player, bool checkIntegrity)
-        {
-            if (owner != player)
-            {
-                Player last_owner = owner;
-                owner = player;
-
-                if (last_owner != null && last_owner.free_tiles.Contains(this)) last_owner.free_tiles.Remove(this);
-
-                RecalculateSourceAndDestinationProvision();
-                if (OnTileChange != null) OnTileChange(this, last_owner, owner);
-
-
-                if (checkIntegrity) CheckNeighbourIntegrity();
-            }
-        }
-
-        private void CheckNeighbourIntegrity()
-        {
-            foreach (TileObject neighbour in neighbours)
-            {
-                if (neighbour != null && neighbour.owner != null)
-                {
-                    List<TileObject> tiles = new List<TileObject>();
-                    if (!TraceBase(neighbour, tiles)) tiles.ForEach(x => x.SetOwner(null, false));
-                }
-            }
-        }
-
-        public void RefreshColor()
-        {
-            Color color = Owner != null ? (Owner.red ? Color.red : Color.green) : Color.gray;
-            color.a = Player.player_on_turn.destinations.Is(this) || Player.player_on_turn.sources.Is(this) ? 1.0f : 0.5f;
-            if (structure != null) color.b = 1.0f;
-        }
-
-
-        public Structure structure;
-
-        public void RecalculateSourceAndDestinationProvision()
-        {
-            if (Owner != null)
-            {
-                Owner.sources.Set(this, true);
-                Owner.opponent.sources.Set(this, false);
-
-                foreach (Player player in Player.players) player.destinations.Set(this, false);
-            }
-            else
-            {
-                foreach (Player player in Player.players)
-                {
-                    player.sources.Set(this, false);
-                    player.destinations.Set(this, neighbours.Any(x => x != null && x.Owner == player));
-                }
-            }
-
-            foreach (TileObject neighbour in neighbours)
-            {
-                if (neighbour != null)
-                {
-                    foreach (Player player in Player.players)
-                    {
-                        player.destinations.Set(neighbour, neighbour.Owner == null && neighbour.neighbours.Any(x => x != null && x.Owner == player));
-                    }
-                }
-            }
-        }
-
-        public static bool TraceBase(TileObject root, List<TileObject> explored)
-        {
-
-            if (root.structure is Structures.Base && (root.structure as Structures.Base).main) return true;
-            explored.Add(root);
-
-            IEnumerable<TileObject> next = root.neighbours.Where(x => x != null && x.Owner == root.Owner && !explored.Contains(x)).OrderByDescending(x => (x.position - explored.First().position).sqrMagnitude);
-            foreach (TileObject tile in next)
-            {
-                if (TraceBase(tile, explored)) return true;
-            }
-
-            return false;
-        }
-
-        public static void Push(TileObject tile, Vector2Int direction)
-        {
-            int x = direction.x == 0 ? 2 : direction.x;
-            int y = direction.y == 0 ? 1 : direction.y;
-            Push(tile, x + y);
-
-            tile.CheckNeighbourIntegrity();
-        }
-
-        static void Push(TileObject root, int i)
-        {
-            TileObject next = root.neighbours[i];
-            if (next != null)
-            {
-                if (next.Owner != null) Push(next, i);
-                next.SetOwner(root.Owner, true);
-                root.SetOwner(null, false);
-            }
-        }
-
-        public void SelectSource()
-        {
-            if (!Player.player_on_turn.sources.Is(this)) throw new Exception("Tried to select " + position + " - not a source.");
-            Player.source = this;
-        }
-
-        public void SelectDestination()
-        {
-            if (!Player.player_on_turn.destinations.Is(this)) throw new Exception("Tried to move " + Player.source.position + " into " + position + " - not a destination.");
-
-            bool free_tile = Player.source.Owner.free_tiles.Contains(Player.source);
-            Player source_owner = Player.source.Owner;
-
-            SetOwner(Player.player_on_turn, true);
-            Player.source.SetOwner(null, true);
-            Player.source = null;
-
-            if (!free_tile || source_owner.free_tiles.Count == 0) Player.Next();
         }
     }
 }

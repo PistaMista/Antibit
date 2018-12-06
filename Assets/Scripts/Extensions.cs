@@ -5,16 +5,16 @@ using UnityEngine;
 
 public static class Extensions
 {
-    public static bool Is(this bool[,] array, Gameplay.Tiles.TileObject tile)
-    {
-        return array.Is(tile.position);
-    }
+    // public static bool Is(this bool[,] array, Gameplay.Tiles.TileObject tile)
+    // {
+    //     return array.Is(tile.position);
+    // }
 
-    public static void Set(this bool[,] array, Gameplay.Tiles.TileObject tile, bool value)
-    {
-        array.Set(tile.position, value);
-        tile.RefreshColor();
-    }
+    // public static void Set(this bool[,] array, Gameplay.Tiles.TileObject tile, bool value)
+    // {
+    //     array.Set(tile.position, value);
+    //     tile.RefreshColor();
+    // }
 
     public static bool Is(this bool[,] array, Vector2Int position)
     {
