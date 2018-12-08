@@ -39,7 +39,7 @@ namespace Gameplay
                         Tiles.Tile tile = new Tiles.Tile(
                             position: new Vector2Int(x, y),
                             prefab: tilePrefabs.First(candidate => candidate.name == render_tile.name).gameObject,
-                            graphic: render_tile,
+                            parent: parent,
                             post_initializer: ref post_initializer
                         );
 

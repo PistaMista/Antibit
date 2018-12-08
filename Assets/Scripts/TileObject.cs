@@ -26,21 +26,17 @@ namespace Gameplay.Tiles
             }
         }
 
-        public Tile(Vector2Int position, GameObject prefab, Transform parent, UnityEngine.Tilemaps.Tile graphic, ref Action post_initializer)
+        public Tile(Vector2Int position, GameObject prefab, Transform parent, ref Action post_initializer)
         {
             this.position = position;
-
-            this.graphic = graphic;
-            original = GameObject.Instantiate(prefab).GetComponent<TileObject>();
-            present = GameObject.Instantiate(prefab).GetComponent<TileObject>();
             this.parent = parent;
 
+            present = GameObject.Instantiate(prefab).GetComponent<TileObject>();
             present.transform.SetParent(parent);
-            original.transform.SetParent(present.transform);
+
+            ApplyChange(update_structures: false);
 
             post_initializer += AssignNeighbours;
-
-
         }
 
         private void AssignNeighbours()
@@ -56,20 +52,26 @@ namespace Gameplay.Tiles
             }
         }
 
-        public void ApplyChange()
+        public void ApplyChange(bool update_structures = true)
         {
             if (original != present)
             {
-                //Shape.Ghosts.OnTileChange(this);
+                //if (update_structures) Shape.Ghosts.OnTileChange(this);
 
-                GameObject.Destroy(original.gameObject);
+                if (original != null) GameObject.Destroy(original.gameObject);
 
                 original = present;
                 present = GameObject.Instantiate(present.gameObject, present.transform.parent).GetComponent<TileObject>();
 
                 original.transform.SetParent(present.transform);
 
-                graphic.color = original.GetTargetTileColor();
+                present.name = present.GetType().Name;
+                original.name = present.name + " - original";
+
+                Vector3Int render_position = Board.render.origin + new Vector3Int(position.x, position.y, 0);
+                // Board.render.SetTileFlags(render_position, );
+                Board.render.SetColor(render_position, original.GetTargetTileColor());
+                Board.render.RefreshTile(render_position);
             }
         }
     }
