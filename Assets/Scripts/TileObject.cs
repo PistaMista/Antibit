@@ -26,10 +26,11 @@ namespace Gameplay.Tiles
             }
         }
 
-        public Tile(Vector2Int position, GameObject prefab, Transform parent, ref Action post_initializer)
+        public Tile(Vector2Int position, GameObject prefab, Transform parent, UnityEngine.Tilemaps.Tile graphic, ref Action post_initializer)
         {
             this.position = position;
 
+            this.graphic = graphic;
             original = GameObject.Instantiate(prefab).GetComponent<TileObject>();
             present = GameObject.Instantiate(prefab).GetComponent<TileObject>();
             this.parent = parent;
@@ -38,6 +39,8 @@ namespace Gameplay.Tiles
             original.transform.SetParent(present.transform);
 
             post_initializer += AssignNeighbours;
+
+
         }
 
         private void AssignNeighbours()
@@ -65,6 +68,8 @@ namespace Gameplay.Tiles
                 present = GameObject.Instantiate(present.gameObject, present.transform.parent).GetComponent<TileObject>();
 
                 original.transform.SetParent(present.transform);
+
+                graphic.color = original.GetTargetTileColor();
             }
         }
     }
@@ -77,6 +82,11 @@ namespace Gameplay.Tiles
             {
                 return owner;
             }
+        }
+
+        public virtual Color GetTargetTileColor()
+        {
+            return Color.white;
         }
     }
 }

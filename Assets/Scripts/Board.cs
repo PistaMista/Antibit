@@ -8,9 +8,11 @@ using System.Linq;
 
 namespace Gameplay
 {
+    [RequireComponent(typeof(Tilemap))]
     public class Board : MonoBehaviour
     {
         public static Board board;
+        public static Tilemap render;
         void Start()
         {
             board = this;
@@ -18,9 +20,9 @@ namespace Gameplay
             Transform parent = new GameObject("Tiles").transform;
             parent.transform.SetParent(this.transform);
 
-            Tilemap renderer = GetComponentInChildren<Tilemap>();
-            Vector3Int size = renderer.size;
-            Vector3Int origin = renderer.origin;
+            render = GetComponent<Tilemap>();
+            Vector3Int size = render.size;
+            Vector3Int origin = render.origin;
 
             tiles = new Tiles.Tile[size.x, size.y];
             System.Action post_initializer = () => { };
@@ -30,16 +32,17 @@ namespace Gameplay
                 for (int y = 0; y < size.y; y++)
                 {
                     Vector3Int tilemap_position = origin + new Vector3Int(x, y, 0);
-                    UnityEngine.Tilemaps.Tile render_tile = renderer.GetTile<UnityEngine.Tilemaps.Tile>(tilemap_position);
+                    UnityEngine.Tilemaps.Tile render_tile = render.GetTile<UnityEngine.Tilemaps.Tile>(tilemap_position);
 
                     if (render_tile != null)
                     {
                         Tiles.Tile tile = new Tiles.Tile(
                             position: new Vector2Int(x, y),
                             prefab: tilePrefabs.First(candidate => candidate.name == render_tile.name).gameObject,
-                            parent: parent,
+                            graphic: render_tile,
                             post_initializer: ref post_initializer
                         );
+
                         tiles[x, y] = tile;
                     }
                 }
